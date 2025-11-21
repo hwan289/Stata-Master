@@ -164,7 +164,7 @@
             
             <footer class="mt-20 border-t border-gray-100 pt-10 pb-10 text-center text-gray-400 text-sm">
                 <p>© 2025 Stata Master.</p>
-                <p id="footer-text" class="mt-1">Based on Stata 17/18 Syntax Standards.</p>
+                <p id="footer-text" class="mt-1">Based on Stata 18 Syntax Standards.</p>
                 <p id="last-edited" class="text-xs text-gray-300 mt-4"></p>
             </footer>
         </div>
@@ -211,7 +211,7 @@
                     typeHere: "Type your Stata command here...",
                     toc: "Jump to Section:",
                     quickRef: "Quick Operators",
-                    footer: "Based on Stata 17/18 Syntax Standards.",
+                    footer: "Based on Stata 18 Syntax Standards.",
                     navTitle: "Modules",
                     nextQ: "Next Question",
                     prevQ: "Previous",
@@ -247,7 +247,7 @@
                     typeHere: "在此输入 Stata 命令...",
                     toc: "跳转到小节：",
                     quickRef: "常用运算符",
-                    footer: "基于 Stata 17/18 语法标准。",
+                    footer: "基于 Stata 18 语法标准。",
                     navTitle: "课程模块",
                     nextQ: "下一题",
                     prevQ: "上一题",
@@ -283,7 +283,7 @@
                     typeHere: "Tapez votre commande Stata ici...",
                     toc: "Sauter à la section :",
                     quickRef: "Opérateurs Rapides",
-                    footer: "Basé sur les normes de syntaxe Stata 17/18.",
+                    footer: "Basé sur les normes de syntaxe Stata 18.",
                     navTitle: "Modules",
                     nextQ: "Suivant",
                     prevQ: "Précédent",
@@ -353,11 +353,11 @@ sysuse auto, clear // Données d'exemple`
                     },
                     {
                         id: "shortcuts",
-                        subtitle: { en: "1.2 Abbreviations & Calculator", zh: "1.2 命令简写与计算器 (Display)", fr: "1.2 Abréviations & Calculatrice" },
+                        subtitle: { en: "1.2 Abbreviations, Calculator & Help", zh: "1.2 简写、计算器与帮助", fr: "1.2 Abréviations, Calculatrice et Aide" },
                         text: {
-                            en: "Stata allows abbreviations. <b>As long as the abbreviation is unique, commands and variable names can be abbreviated.</b> Use `display` (or `di`) as a quick calculator.",
-                            zh: "Stata 允许简写。<b>只要简写是唯一的，命令和变量名都可以简写。</b> 使用 `display` (或 `di`) 作为快速计算器。",
-                            fr: "Stata autorise les abréviations. <b>Tant que l'abréviation est unique, les commandes et les noms de variables peuvent être abrégés.</b> Utilisez `display` (ou `di`) comme calculatrice rapide."
+                            en: "Stata allows abbreviations. <b>As long as the abbreviation is unique, commands and variable names can be abbreviated.</b> Use `display` as a calculator and `help` for documentation.",
+                            zh: "Stata 允许简写。<b>只要简写是唯一的，命令和变量名都可以简写。</b> 使用 `display` 作为计算器，使用 `help` 查看文档。",
+                            fr: "Stata autorise les abréviations. <b>Tant que l'abréviation est unique, les commandes et les noms de variables peuvent être abrégés.</b> Utilisez `display` comme calculatrice et `help` pour la documentation."
                         },
                         codeBlock: {
                             en: `* Calculator / Display text
@@ -365,19 +365,28 @@ display 2 + 2
 di "The result is " 10 * 5
 
 * 'summarize' -> 'su'
-su price`,
+su price
+
+* Help command (Essential)
+help regress`,
                             zh: `* 计算器 / 显示文本
 display 2 + 2
 di "计算结果是 " 10 * 5
 
 * 'summarize' -> 'su'
-su price`,
+su price
+
+* 帮助命令 (最重要)
+help regress`,
                             fr: `* Calculatrice / Afficher du texte
 display 2 + 2
 di "Le résultat est " 10 * 5
 
 * 'summarize' -> 'su'
-su price`
+su price
+
+* Commande d'aide (Essentiel)
+help regress`
                         }
                     },
                     {
@@ -432,9 +441,9 @@ sum price, detail`
                         id: "manipulation",
                         subtitle: { en: "1.4 Advanced Cleaning (Recode, Egen, Rename)", zh: "1.4 高级清洗 (Recode, Egen, Rename)", fr: "1.4 Nettoyage Avancé" },
                         text: {
-                            en: "Advanced `recode` with ranges, `egen cut` for binning, and complex `drop/keep`.",
-                            zh: "带范围的 `recode`，用于分箱的 `egen cut`，以及复杂的 `drop/keep` 逻辑。",
-                            fr: "`recode` avancé avec plages, `egen cut` pour le regroupement, et `drop/keep` complexes."
+                            en: "Advanced `recode` with ranges, `egen cut` for binning, and complex `drop/keep`. Stata has 27 missing values: `.` (sysmiss) and `.a` through `.z`. Use `tostring` to convert numeric to string.",
+                            zh: "带范围的 `recode`，用于分箱的 `egen cut`，以及复杂的 `drop/keep` 逻辑。Stata 有 27 种缺失值：`.` (系统缺失) 和 `.a` 到 `.z` (扩展缺失)。使用 `tostring` 将数值转换为字符串。",
+                            fr: "`recode` avancé avec plages, `egen cut` pour le regroupement, et `drop/keep` complexes. Stata a 27 valeurs manquantes : `.` (sysmiss) et `.a` à `.z`. Utilisez `tostring` pour convertir le numérique en chaîne."
                         },
                         codeBlock: {
                             en: `* Rename Variable
@@ -444,22 +453,24 @@ rename old_name new_name
 * 1/4 means 1 to 4. Rules executed in order.
 recode age (18/25=1 "Young") (26/60=2 "Adult") (61/max=3 "Senior"), gen(age_group)
 
+* Extended Missing Values (.a, .b, ...)
+* Useful for distinguishing "Refused", "Don't Know", "Skip"
+recode answer (98 = .a) (99 = .b)
+
 * Recode with 'if' logic is not direct inside recode, use replace:
 gen group = 0
 replace group = 1 if (var1==1 | var2==1) & !missing(var1)
 
-* Treat specific values as missing
-recode score (999 = .)
-
 * Egen: Cut continuous variable into groups
-* at(0,20,40,100) creates intervals: [0,20), [20,40), [40,100)
 egen age_cat = cut(age), at(0, 20, 40, 100)
 
 * Complex Drop/Keep
 keep if (gender == 1 & age > 20) | (region == "North")
 drop if missing(salary) | salary < 0
-* Convert String to Numeric
-destring cost_str, replace ignore("$")`,
+
+* Convert Types
+destring cost_str, replace ignore("$")
+tostring id_num, generate(id_str)`,
                             zh: `* 重命名变量
 rename old_name new_name
 
@@ -467,23 +478,25 @@ rename old_name new_name
 * 18/25 代表 18 到 25。规则按顺序执行。
 recode age (18/25=1 "Young") (26/60=2 "Adult") (61/max=3 "Senior"), gen(age_group)
 
+* 扩展缺失值 (.a, .b, ...)
+* 用于区分 “拒绝回答” (98) 和 “不知道” (99)
+recode answer (98 = .a) (99 = .b)
+
 * 复杂逻辑赋值 (Recode 内部不支持 if, 需用 replace)
 gen group = 0
 replace group = 1 if (var1==1 | var2==1) & !missing(var1)
 
-* 将特定值 (如999) 设为缺失值 (.)
-recode score (999 = .)
-
 * Egen: Cut 函数 (切割连续变量)
-* at(0,20,40,100) 创建区间: [0,20), [20,40), [40,100)
 egen age_cat = cut(age), at(0, 20, 40, 100)
 
 * 复杂的保留/删除
 keep if (gender == 1 & age > 20) | (region == "North")
 * 删除 salary 缺失 或者 小于 0 的样本
 drop if missing(salary) | salary < 0
-* 字符串转数值
-destring cost_str, replace ignore("$")`,
+
+* 类型转换
+destring cost_str, replace ignore("$")
+tostring id_num, generate(id_str)`,
                             fr: `* Renommer la variable
 rename old_name new_name
 
@@ -491,22 +504,24 @@ rename old_name new_name
 * 1/4 signifie de 1 à 4. Règles exécutées dans l'ordre.
 recode age (18/25=1 "Jeune") (26/60=2 "Adulte") (61/max=3 "Senior"), gen(age_group)
 
+* Valeurs manquantes étendues (.a, .b, ...)
+* Utile pour distinguer "Refus" (98) et "Ne sait pas" (99)
+recode answer (98 = .a) (99 = .b)
+
 * Recoder avec logique 'if' (utiliser replace) :
 gen group = 0
 replace group = 1 if (var1==1 | var2==1) & !missing(var1)
 
-* Traiter des valeurs spécifiques comme manquantes
-recode score (999 = .)
-
 * Egen : Couper une variable continue en groupes
-* at(0,20,40,100) crée des intervalles : [0,20), [20,40), [40,100)
 egen age_cat = cut(age), at(0, 20, 40, 100)
 
 * Drop/Keep complexe
 keep if (gender == 1 & age > 20) | (region == "Nord")
 drop if missing(salary) | salary < 0
-* Convertir Chaîne en Numérique
-destring cost_str, replace ignore("$")`
+
+* Convertir les types
+destring cost_str, replace ignore("$")
+tostring id_num, generate(id_str)`
                         }
                     },
                     {
@@ -548,23 +563,26 @@ label values varX status_map`
                         id: "tabulate",
                         subtitle: { en: "1.6 Basic Tabulation & Correlation", zh: "1.6 基础列表与相关性", fr: "1.6 Tabulation de base" },
                         text: {
-                            en: "Basic `tab` and `corr`.",
-                            zh: "基础的 `tab` 和 `corr`。",
-                            fr: "Utilisation de base de `tab` et `corr`."
+                            en: "Basic `tab` and `corr`. <b>Golden Rule:</b> <b>tab RowVar ColVar, row</b>. (X variable in Row, Y variable in Column). This shows the effect of X on Y.",
+                            zh: "基础的 `tab` 和 `corr`。<b>黄金法则：</b> <b>tab 行变量 列变量, row</b>。（自变量 X 在行，因变量 Y 在列）。这显示了 X 对 Y 的影响。",
+                            fr: "Utilisation de base de `tab` et `corr`. <b>Règle d'or :</b> <b>tab VarLigne VarCol, row</b>. (Variable X en Ligne, Variable Y en Colonne). Cela montre l'effet de X sur Y."
                         },
                         codeBlock: {
-                            en: `* Two-way Crosstab (Y by X, with Chi2 test)
-tab rep78 foreign, chi2
+                            en: `* Two-way Crosstab: Does Gender (Row) affect Voting (Col)?
+* 'row': Calculate percentages within each row (Gender)
+tab gender vote, row
 
 * Pearson Correlation (Pairwise deletion)
 pwcorr price mpg weight, sig`,
-                            zh: `* 双变量交叉表 (Y 对 X，带卡方检验)
-tab rep78 foreign, chi2
+                            zh: `* 双变量交叉表: 性别 (行) 是否影响投票 (列)?
+* 'row': 计算每一行 (性别) 内部的百分比
+tab gender vote, row
 
 * 皮尔逊相关性 (成对删除缺失值)
 pwcorr price mpg weight, sig`,
-                            fr: `* Tableau croisé à deux entrées (Y par X, avec test Chi2)
-tab rep78 foreign, chi2
+                            fr: `* Tableau croisé : Le genre (Ligne) affecte-t-il le vote (Col) ?
+* 'row' : Calculer les pourcentages dans chaque ligne (Genre)
+tab gender vote, row
 
 * Corrélation de Pearson (suppression par paire)
 pwcorr price mpg weight, sig`
@@ -574,78 +592,92 @@ pwcorr price mpg weight, sig`
                          id: "adv-tables",
                          subtitle: { en: "1.7 Advanced Tables & Stats", zh: "1.7 高级表格与统计 (Tab/Tabstat)", fr: "1.7 Tableaux Avancés" },
                          text: {
-                             en: "Power users need `tab` options (gamma, V), `tabstat` for specific stats, `bysort`, and dummy generation.",
-                             zh: "高级用法：`tab` 的统计选项 (Gamma, V)，`tabstat` 定制统计量，`bysort` 多维分组，以及生成虚拟变量。",
-                             fr: "Les utilisateurs avancés ont besoin des options `tab` (gamma, V), `tabstat` pour des statistiques spécifiques, `bysort`, et la génération de variables muettes."
+                             en: "Power users need `tab` options, `tabstat`, `bysort`, and dummy generation. Use `nofreq` to suppress frequencies.",
+                             zh: "高级用法：`tab` 选项，`tabstat`，`bysort`，和虚拟变量生成。使用 `nofreq` 隐藏频数。",
+                             fr: "Utilisateurs avancés : options `tab`, `tabstat`, `bysort`, variables muettes. Utilisez `nofreq` pour masquer les fréquences."
                          },
                          codeBlock: {
                              en: `* 1. Complex Tab Options (No key, various tests)
 * col/row: percentages; nokey: hide legend; V: Cramer's V
 tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
 
-* 2. Clean Tab (No frequencies or percents? Stata defaults show freq)
-* Use 'tab1' or 'table' (new in Stata 17) for clean output, or:
-tab var, plot // simple visual
+* 2. Conditional Crosstab (Complex Example)
+* Tabulate VISMINFL by VBR_40 for sub-population
+tab VISMINFL VBR_40 if GENDER2P==1 & PRV==10, row
+tab VISMINFL VBR_40 if GENDER2P==2 & PRV==10, row
 
-* 3. Tabstat: Very powerful for specific stats
+* 3. Clean Tab (Suppress Frequency, Show Row %)
+tab rep78 foreign, row nofreq
+
+* 4. Tabstat: Very powerful for specific stats
 tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
 
-* 4. Multi-way Tables & Summary
+* 5. Multi-way Tables & Summary
 * 3-way: by 'studentstatus', tab gender vs major
 bysort studentstatus: tab gender major
 * Tabulate gender and major, showing mean of SAT score in cells
 bysort studentstatus: tab gender major, sum(sat)
 
-* 5. Generate Dummy Variables automatically
+* 6. Generate Dummy Variables automatically
 * Creates major_dum1, major_dum2, etc.
 tab major, generate(major_dum)
 
-* 6. Multiple Tables at once
+* 7. Multiple Tables at once
 tab1 gender region race`,
                              zh: `* 1. 复杂 Tab 选项 (隐藏图例, 各类检验)
 * col/row: 行列百分比; nokey: 隐藏图例; V: Cramer's V; exact: 精确检验
 tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
 
-* 2. 纯净表格
-* 使用 tab1 或 table (Stata 17新版)
+* 2. 条件交叉表 (复杂案例)
+* 对特定子群体进行列表
+tab VISMINFL VBR_40 if GENDER2P==1 & PRV==10, row
+tab VISMINFL VBR_40 if GENDER2P==2 & PRV==10, row
 
-* 3. Tabstat: 强大的定制统计
+* 3. 纯净表格 (隐藏频数，只显示行百分比)
+tab rep78 foreign, row nofreq
+
+* 4. Tabstat: 强大的定制统计
 * 按 foreign 分组，显示 price 和 mpg 的均值、标准差、中位数等
 tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
 
-* 4. 多维表格与汇总
+* 5. 多维表格与汇总
 * 三维表: 按 'studentstatus' 分组，做 gender 和 major 的交叉表
 bysort studentstatus: tab gender major
 * 交叉表单元格内显示第三个变量 (sat) 的均值
 bysort studentstatus: tab gender major, sum(sat)
 
-* 5. 自动生成虚拟变量 (Dummies)
+* 6. 自动生成虚拟变量 (Dummies)
 * 会自动创建 major_dum1, major_dum2 等变量
 tab major, generate(major_dum)
 
-* 6. 同时生成多个一维表
+* 7. 同时生成多个一维表
 tab1 gender region race`,
                              fr: `* 1. Options Tab Complexes
 * col/row: pourcentages; nokey: masquer légende; V: V de Cramer
 tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
 
-* 2. Tableau propre (tab1 ou table pour Stata 17)
-tab var, plot
+* 2. Tableau croisé conditionnel (Exemple complexe)
+* Tabuler pour une sous-population
+tab VISMINFL VBR_40 if GENDER2P==1 & PRV==10, row
+tab VISMINFL VBR_40 if GENDER2P==2 & PRV==10, row
 
-* 3. Tabstat : Très puissant pour des statistiques spécifiques
+* 3. Tableau propre (Masquer fréquence, Afficher % Ligne)
+tab rep78 foreign, row nofreq
+
+* 4. Tabstat : Très puissant pour des statistiques spécifiques
 tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
 
-* 4. Tableaux multidimensionnels & Résumé
+* 5. Tableaux multidimensionnels & Résumé
 * 3 voies : par 'studentstatus', tab gender vs major
 bysort studentstatus: tab gender major
 * Tabuler gender et major, en montrant la moyenne de SAT dans les cellules
 bysort studentstatus: tab gender major, sum(sat)
 
-* 5. Générer des variables muettes (Dummies) automatiquement
+* 6. Générer des variables muettes (Dummies) automatiquement
 * Crée major_dum1, major_dum2, etc.
 tab major, generate(major_dum)
 
-* 6. Plusieurs tableaux à la fois
+* 7. Plusieurs tableaux à la fois
 tab1 gender region race`
                          }
                     }
@@ -700,26 +732,35 @@ tab1 gender region race`
                         id: "reg-basics",
                         subtitle: { en: "2.1 Basic & Conditional", zh: "2.1 基础与条件回归", fr: "2.1 Régression de base et conditionnelle" },
                         text: {
-                            en: "Run regression on sample or subset.",
-                            zh: "运行回归。",
-                            fr: "Exécuter la régression sur l'échantillon ou un sous-ensemble."
+                            en: "Run regression on sample or subset. Use `noconstant` to suppress the constant.",
+                            zh: "运行回归。使用 `noconstant` 去除常数项。",
+                            fr: "Exécuter la régression. Utilisez `noconstant` pour supprimer la constante."
                         },
                         codeBlock: {
                             en: `* Standard OLS
 regress price mpg weight
 
 * Conditional
-regress price mpg weight if foreign == 1`,
+regress price mpg weight if foreign == 1
+
+* No Constant
+regress price mpg, noconstant`,
                             zh: `* 标准 OLS 回归
 regress price mpg weight
 
 * 条件回归
-regress price mpg weight if foreign == 1`,
+regress price mpg weight if foreign == 1
+
+* 无常数项回归
+regress price mpg, noconstant`,
                             fr: `* OLS Standard
 regress price mpg weight
 
 * Conditionnelle
-regress price mpg weight if foreign == 1`
+regress price mpg weight if foreign == 1
+
+* Sans constante
+regress price mpg, noconstant`
                         }
                     },
                     {
@@ -752,35 +793,59 @@ reg price ib3.rep78`
                         id: "interactions",
                         subtitle: { en: "2.3 Interactions & Margins", zh: "2.3 交互效应与边际图", fr: "2.3 Interactions et Marges" },
                         text: {
-                            en: "Crucial: Use `#` for interactions. Always follow with `margins`.",
-                            zh: "关键：使用 `#` 构建交互项。之后务必使用 `margins`。",
-                            fr: "Crucial : Utilisez `#` pour les interactions. Suivez toujours avec `margins`."
+                            en: "Crucial: Use `#` for interactions. Use `margins` to visualize. Use `test` for significance. Center variables to reduce collinearity.",
+                            zh: "关键：使用 `#` 构建交互项。使用 `margins` 可视化。使用 `test` 检验显著性。建议中心化变量以减少共线性。",
+                            fr: "Crucial : Utilisez `#` pour les interactions. `margins` pour visualiser. `test` pour la signification. Centrer les variables."
                         },
                         codeBlock: {
-                            en: `* Interaction
+                            en: `* 1. Interaction (Continuous * Categorical)
 reg price c.mpg##i.foreign
 
-* Calculate Slopes
+* 2. Significance Test of Interaction
+test c.mpg#1.foreign
+
+* 3. Calculate Slopes (Margins)
 margins foreign, dydx(mpg)
 
-* Plot
-marginsplot`,
-                            zh: `* 交互作用
+* 4. Specific Margins (at specific values)
+margins foreign, at(mpg=(10(10)40))
+
+* 5. Centering Continuous Variables (Manual)
+summarize age, meanonly
+gen age_c = age - r(mean)
+regress y c.age_c##i.gender`,
+                            zh: `* 1. 交互作用 (连续 * 分类)
 reg price c.mpg##i.foreign
 
-* 计算斜率
+* 2. 交互项显著性检验 (Wald Test)
+test c.mpg#1.foreign
+
+* 3. 计算斜率 (边际效应)
 margins foreign, dydx(mpg)
 
-* 绘图
-marginsplot`,
-                            fr: `* Interaction
+* 4. 指定数值的边际效应 (例如 mpg=10, 20, 30, 40)
+margins foreign, at(mpg=(10(10)40))
+
+* 5. 连续变量中心化 (手动)
+summarize age, meanonly
+gen age_c = age - r(mean)
+regress y c.age_c##i.gender`,
+                            fr: `* 1. Interaction (Continu * Catégoriel)
 reg price c.mpg##i.foreign
 
-* Calculer les pentes
+* 2. Test de signification
+test c.mpg#1.foreign
+
+* 3. Calculer les pentes (Marges)
 margins foreign, dydx(mpg)
 
-* Tracer
-marginsplot`
+* 4. Marges spécifiques (à des valeurs précises)
+margins foreign, at(mpg=(10(10)40))
+
+* 5. Centrer les variables continues (Manuel)
+summarize age, meanonly
+gen age_c = age - r(mean)
+regress y c.age_c##i.gender`
                         }
                     },
                     {
@@ -845,8 +910,123 @@ esttab m1 using "res.rtf", replace se ar2 label`
                         }
                     },
                     {
+                         id: "assumptions",
+                         subtitle: { en: "2.6 Assumption Tests (Diagnostic)", zh: "2.6 假设检验 (诊断)", fr: "2.6 Tests des Hypothèses (Diagnostics)" },
+                         text: {
+                             en: "After OLS, check assumptions: Heteroskedasticity, Multicollinearity, and Normality.",
+                             zh: "OLS 回归后必须进行诊断：异方差、多重共线性及正态性。",
+                             fr: "Après les MCO, vérifiez les hypothèses : Hétéroscédasticité, Multicolinéarité et Normalité."
+                         },
+                         codeBlock: {
+                             en: `* 1. Heteroskedasticity (Breusch-Pagan)
+* H0: Constant variance. p < 0.05 -> Heteroskedasticity exists.
+estat hettest
+
+* 2. Multicollinearity (VIF)
+estat vif
+
+* 3. Normality of Residuals (Shapiro-Wilk)
+predict r, resid
+swilk r
+
+* 4. Model Specification (RESET test)
+* H0: Model has no omitted variables.
+ovtest`,
+                             zh: `* 1. 异方差检验 (Breusch-Pagan)
+* H0: 方差恒定。p < 0.05 -> 存在异方差 (需用 vce(robust))
+estat hettest
+
+* 2. 多重共线性 (VIF)
+estat vif
+
+* 3. 残差正态性检验 (Shapiro-Wilk)
+predict r, resid
+swilk r
+
+* 4. 模型设定检验 (RESET test)
+* H0: 模型没有遗漏变量
+ovtest`,
+                             fr: `* 1. Hétéroscédasticité (Breusch-Pagan)
+* H0 : Variance constante. p < 0.05 -> Hétéroscédasticité présente
+estat hettest
+
+* 2. Multicolinéarité (VIF)
+estat vif
+
+* 3. Normalité des résidus (Shapiro-Wilk)
+predict r, resid
+swilk r
+
+* 4. Spécification du modèle (Test RESET)
+* H0 : Le modèle n'a pas de variables omises
+ovtest`
+                         }
+                    },
+                    {
+                         id: "nonlinear-diag",
+                         subtitle: { en: "2.7 Non-linear Diagnostic (Logit/Ologit)", zh: "2.7 非线性假设检验 (Logit/Ologit)", fr: "2.7 Diagnostics Non-linéaires (Logit/Ologit)" },
+                         text: {
+                             en: "Diagnostics for logistic and ordered logistic models: Specification error, Goodness of Fit, and Parallel Lines.",
+                             zh: "Logit 和 Ordered Logit 模型的诊断：模型设定、拟合优度和平行线检验。",
+                             fr: "Diagnostics pour les modèles logistiques et logistiques ordonnés : Erreur de spécification, Qualité de l'ajustement et Lignes parallèles."
+                         },
+                         codeBlock: {
+                             en: `* 1. Specification Error (Linktest)
+* Checks if the model is properly specified. '_hatsq' should be non-significant.
+linktest
+
+* 2. Logit: Goodness of Fit (Hosmer-Lemeshow)
+* H0: Model fits well. p > 0.05 is good.
+logit y x
+estat gof, group(10) table
+
+* 3. Logit: Classification Table & ROC
+estat classification
+lroc
+
+* 4. Ordered Logit: Parallel Regression Assumption (Brant Test)
+* Requires user command 'brant' (ssc install brant)
+ologit y x
+brant`,
+                             zh: `* 1. 模型设定错误检验 (Linktest)
+* 检查模型设定是否正确。'_hatsq' 应该不显著 (p > 0.05)。
+linktest
+
+* 2. Logit: 拟合优度 (Hosmer-Lemeshow)
+* H0: 模型拟合良好。p > 0.05 表示拟合良好。
+logit y x
+estat gof, group(10) table
+
+* 3. Logit: 分类表与 ROC 曲线
+estat classification
+lroc
+
+* 4. Ordered Logit: 平行回归假设 (Brant 检验)
+* 需要安装用户命令 'brant' (ssc install brant)
+ologit y x
+brant`,
+                             fr: `* 1. Erreur de spécification (Linktest)
+* Vérifie si le modèle est correctement spécifié. '_hatsq' doit être non significatif.
+linktest
+
+* 2. Logit : Qualité de l'ajustement (Hosmer-Lemeshow)
+* H0 : Le modèle s'ajuste bien. p > 0.05 est bon.
+logit y x
+estat gof, group(10) table
+
+* 3. Logit : Table de classification et ROC
+estat classification
+lroc
+
+* 4. Ordered Logit : Hypothèse de régression parallèle (Test de Brant)
+* Nécessite la commande utilisateur 'brant' (ssc install brant)
+ologit y x
+brant`
+                         }
+                    },
+                    {
                          id: "robust",
-                         subtitle: { en: "2.6 Robust Regression", zh: "2.6 稳健回归 (Robust)", fr: "2.6 Régression Robuste" },
+                         subtitle: { en: "2.8 Robust Regression", zh: "2.8 稳健回归 (Robust)", fr: "2.8 Régression Robuste" },
                          text: {
                              en: "Handle heteroskedasticity with `vce(robust)` or outliers with `rreg`.",
                              zh: "使用 `vce(robust)` 处理异方差，或使用 `rreg` 处理离群值。",
@@ -869,10 +1049,10 @@ regress score income, vce(cluster class_id)
 
 * 稳健回归 (降低离群值得权重)
 rreg price mpg weight`,
-                             fr: `* Erreurs types robustes (Hétéroscédasticité)
+                             fr: `* Erreurs standards robustes (Hétéroscédasticité)
 regress price mpg weight, vce(robust)
 
-* Erreurs types clusterisées (par ex. par classe)
+* Erreurs standards clusterisées (par ex. par classe)
 regress score income, vce(cluster class_id)
 
 * Régression robuste (Pondère moins les valeurs aberrantes)
@@ -889,7 +1069,7 @@ rreg price mpg weight`
                         explanation: { en: "`reg y c.age##i.gender`", zh: "`reg y c.age##i.gender`", fr: "`reg y c.age##i.gender`" }
                     },
                     {
-                         question: { en: "Regression with robust standard errors.", zh: "使用稳健标准误的回归。", fr: "Régression avec erreurs types robustes." },
+                         question: { en: "Regression with robust standard errors.", zh: "使用稳健标准误的回归。", fr: "Régression avec erreurs standards robustes." },
                          correctKeywords: ["vce(robust)", "robust"],
                          placeholder: "reg y x, ...",
                          hint: "vce(robust)",
@@ -1031,9 +1211,47 @@ ssc install coefplot
 logit foreign mpg price, or
 
 * 2. Tracer les Odds Ratios (option eform)
-* drop(_cons): supprimer la constante
-* xline(1): ligne de référence pour OR
+* drop(_cons) : supprimer la constante
+* xline(1) : ligne de référence pour OR
 coefplot, drop(_cons) xline(1) eform`
+                         }
+                    },
+                    {
+                         id: "custom-viz",
+                         subtitle: { en: "3.5 Customization (Twoway)", zh: "3.5 高级定制 (Twoway)", fr: "3.5 Personnalisation (Twoway)" },
+                         text: {
+                             en: "Customize markers, labels, axes, and transparency.",
+                             zh: "定制标记、标签、坐标轴和透明度。",
+                             fr: "Personnalisez les marqueurs, les étiquettes, les axes et la transparence."
+                         },
+                         codeBlock: {
+                             en: `* Twoway Scatter with options
+* mcolor(color%transparency): Marker color
+* msymbol(O): Marker symbol
+* xlabel: Custom X axis ticks
+twoway scatter price mpg, ///
+    title("Price vs MPG") ///
+    subtitle("1978 Data") ///
+    mcolor(blue%50) msymbol(O) ///
+    xlabel(0(10)50) ylabel(, angle(0))`,
+                             zh: `* 带选项的 Twoway 散点图
+* mcolor(颜色%透明度): 标记颜色
+* msymbol(O): 标记形状 (圆圈)
+* xlabel: 自定义 X 轴刻度
+twoway scatter price mpg, ///
+    title("价格 vs 油耗") ///
+    subtitle("1978年数据") ///
+    mcolor(blue%50) msymbol(O) ///
+    xlabel(0(10)50) ylabel(, angle(0))`,
+                             fr: `* Nuage de points Twoway avec options
+* mcolor(couleur%transparence) : Couleur du marqueur
+* msymbol(O) : Symbole du marqueur
+* xlabel : Graduations personnalisées de l'axe X
+twoway scatter price mpg, ///
+    title("Prix vs MPG") ///
+    subtitle("Données 1978") ///
+    mcolor(blue%50) msymbol(O) ///
+    xlabel(0(10)50) ylabel(, angle(0))`
                          }
                     }
                 ],
@@ -1357,6 +1575,11 @@ merge m:1 region using "\`region_stats'"`
                     {
                         id: "res-links",
                         subtitle: { en: "7.1 Useful Links", zh: "7.1 常用链接资源", fr: "7.1 Liens utiles" },
+                        text: {
+                            en: "Click left to copy link. Right click for menu.",
+                            zh: "左键点击复制链接。右键点击显示菜单。",
+                            fr: "Clic gauche pour copier le lien. Clic droit pour le menu."
+                        },
                         resourceList: [
                             { name: "Stata Cheat Sheet (PDF)", url: "https://www.stata.com/flyers/statacheatsheets.pdf" },
                             { name: "Stata FAQ (Support)", url: "http://stata.com/support/faqs/" },
@@ -1493,7 +1716,7 @@ merge m:1 region using "\`region_stats'"`
                             <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full group-hover:h-8 transition-all duration-300"></span>
                             ${section.subtitle[lang]}
                         </h2>
-                        ${section.text ? `<p class="text-gray-700 leading-relaxed mb-4">${section.text[lang]}</p>` : ''}
+                        ${section.text ? `<p class="text-gray-700 leading-relaxed mb-4">${formatText(section.text[lang])}</p>` : ''}
                 `;
                 if (section.codeBlock) {
                     const code = section.codeBlock[lang] || section.codeBlock['en'];
@@ -1515,9 +1738,18 @@ merge m:1 region using "\`region_stats'"`
             main.innerHTML = html;
         }
 
+        function formatText(text) {
+            if (!text) return '';
+            // Replace **bold** with <b>bold</b>
+            let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            // Replace `code` with styled code span (blue now)
+            formatted = formatted.replace(/`(.*?)`/g, '<code class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono text-sm border border-blue-200">$1</code>');
+            return formatted;
+        }
+
         function renderCodeBlock(code) {
             // Extended keywords list including new ones
-            const keywords = ['regress', 'reg', 'logit', 'logistic', 'ologit', 'summarize', 'sum', 'su', 'tabulate', 'tab', 'tab1', 'tabstat', 'table', 'generate', 'gen', 'replace', 'recode', 'destring', 'tostring', 'drop', 'keep', 'sysuse', 'use', 'scatter', 'twoway', 'hist', 'histogram', 'graph', 'svyset', 'svy:', 'describe', 'label', 'log', 'estat', 'eststo', 'esttab', 'margins', 'marginsplot', 'ssc', 'set', 'catplot', 'codebook', 'doedit', 'help', 'corr', 'pwcorr', 'rename', 'egen', 'display', 'di', 'local', 'global', 'rreg', 'misstable', 'bysort', 'foreach', 'forvalues', 'tempfile', 'save', 'merge', 'restore', 'preserve', 'collapse', 'coefplot'];
+            const keywords = ['regress', 'reg', 'logit', 'logistic', 'ologit', 'summarize', 'sum', 'su', 'tabulate', 'tab', 'tab1', 'tabstat', 'table', 'generate', 'gen', 'replace', 'recode', 'destring', 'tostring', 'drop', 'keep', 'sysuse', 'use', 'scatter', 'twoway', 'hist', 'histogram', 'graph', 'svyset', 'svy:', 'describe', 'label', 'log', 'estat', 'eststo', 'esttab', 'margins', 'marginsplot', 'ssc', 'set', 'catplot', 'codebook', 'doedit', 'help', 'corr', 'pwcorr', 'rename', 'egen', 'display', 'di', 'local', 'global', 'rreg', 'misstable', 'bysort', 'foreach', 'forvalues', 'tempfile', 'save', 'merge', 'restore', 'preserve', 'collapse', 'coefplot', 'predict', 'swilk', 'ovtest', 'linktest', 'lroc', 'brant', 'test'];
 
             let output = `<div class="bg-gray-50 text-gray-800 p-4 rounded-lg font-mono text-sm overflow-x-auto border border-gray-200 shadow-sm my-4 leading-relaxed">`;
             const codeLines = code.split('\n');
@@ -1536,7 +1768,6 @@ merge m:1 region using "\`region_stats'"`
                 }
 
                 if (inBlockComment || trimmedLine.startsWith('*') || trimmedLine.startsWith('//')) {
-                    // MODIFIED: Removed font-medium to ensure not bold
                     className = "text-green-600 italic"; 
                     if (trimmedLine.includes('*/') && !trimmedLine.startsWith('/*')) inBlockComment = false;
                 } else {
@@ -1545,14 +1776,16 @@ merge m:1 region using "\`region_stats'"`
                     const firstWord = parts[0];
                     
                     let isKeyword = false;
-                    // Check exact match or "svy:" prefix
+                    
+                    // 1. Exact match check (or svy: bysort: prefix)
                     if (keywords.includes(firstWord.toLowerCase()) || firstWord.toLowerCase().startsWith('svy') || firstWord.toLowerCase().startsWith('bysort')) {
                         isKeyword = true;
                     }
                     
-                    // Handle cases with trailing punctuation like "coefplot,"
+                    // 2. Check if word has trailing punctuation (e.g. "coefplot,")
                     if (!isKeyword && firstWord.match(/[a-z0-9]+/i)) {
-                         const cleanWord = firstWord.replace(/[^a-z0-9_]/gi, '');
+                         // Remove non-alphanumeric chars from end
+                         const cleanWord = firstWord.replace(/[^a-z0-9_]+$/gi, ''); 
                          if (keywords.includes(cleanWord.toLowerCase())) {
                              isKeyword = true;
                          }
@@ -1560,7 +1793,8 @@ merge m:1 region using "\`region_stats'"`
 
                     if (isKeyword) {
                          // Highlight first word in Blue
-                         const commandRegex = new RegExp(`^(${firstWord.replace(/[^a-z0-9_]/gi, '')})`, 'i');
+                         // Use a regex that captures the command even if attached to comma
+                         const commandRegex = new RegExp(`^(${firstWord.replace(/[^a-z0-9_]+$/gi, '')})`, 'i');
                          processedLine = processedLine.replace(commandRegex, `<span class="text-blue-700 font-bold">$1</span>`);
                          
                          // Highlight options after comma (Simple heuristic)
@@ -1711,7 +1945,7 @@ EXECUTE.</td>
                             <button onclick="changeQuestion(1)" ${qIndex === quizzes.length - 1 ? 'disabled' : ''} class="p-2 rounded-full hover:bg-indigo-100 disabled:opacity-30 disabled:hover:bg-transparent text-indigo-700"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
                         </div>
                     </div>
-                    ${status === 'correct' ? `<div class="mt-4 flex items-center gap-2 text-green-700 font-bold fade-in"><i data-lucide="check-circle" class="w-6 h-6"></i>${t.ui.correct}</div><div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100 text-sm text-gray-700 fade-in"><span class="font-bold block mb-1 text-indigo-600">${t.ui.explanation}</span>${qData.explanation[lang].replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded font-mono text-pink-600">$1</code>')}</div>` : ''}
+                    ${status === 'correct' ? `<div class="mt-4 flex items-center gap-2 text-green-700 font-bold fade-in"><i data-lucide="check-circle" class="w-6 h-6"></i>${t.ui.correct}</div><div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100 text-sm text-gray-700 fade-in"><span class="font-bold block mb-1 text-indigo-600">${t.ui.explanation}</span>${formatText(qData.explanation[lang])}</div>` : ''}
                     ${status === 'incorrect' ? `<div class="mt-4 flex items-center gap-2 text-red-600 font-bold fade-in"><i data-lucide="x-circle" class="w-6 h-6"></i>${t.ui.incorrect}</div>${state.quiz.showHint ? `<div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100 text-sm text-gray-700 fade-in"><span class="font-bold block mb-1 text-indigo-600">${t.ui.hint}</span><div class="italic text-gray-500">${qData.hint}</div></div>` : ''}` : ''}
                 </div>
             `;
