@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stata Master - Interactive Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Floating Action Button Animation */
+        .fab-hover:hover { transform: scale(1.1); }
+        
+        /* Tooltip Styling */
+        .tooltip { 
+            visibility: hidden; 
+            opacity: 0; 
+            transition: opacity 0.2s, transform 0.2s; 
+            transform: translateY(10px);
+        }
+        .has-tooltip:hover .tooltip { 
+            visibility: visible; 
+            opacity: 1; 
+            transform: translateY(0);
+        }
+        
+        /* Custom Tooltip for Manual Button */
+        .btn-tooltip-group { position: relative; display: inline-flex; }
+        .btn-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            background-color: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            transition: all 0.2s;
+            z-index: 50;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -4px;
+            border-width: 4px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        .btn-tooltip-group:hover .btn-tooltip { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body class="bg-white font-sans text-gray-900 flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div class="md:hidden bg-white border-b p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm flex-shrink-0">
+        <div class="flex items-center gap-2 font-bold text-lg text-gray-800">
+            <i data-lucide="terminal" class="w-6 h-6 text-blue-600"></i>
+            <span id="mobile-title">Stata Master</span>
+        </div>
+        <div class="flex items-center gap-4">
+             <button id="lang-toggle-mobile" class="flex items-center gap-1 text-xs font-bold bg-gray-100 px-2 py-1 rounded">
+                <i data-lucide="globe" class="w-3 h-3"></i>
+                <span id="lang-label-mobile">EN</span>
+             </button>
+             <button id="menu-toggle">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out w-72 bg-slate-50 border-r border-gray-200 flex-shrink-0 z-40 flex flex-col h-full">
+        <div class="p-6 border-b border-gray-200 hidden md:flex flex-col gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                     <i data-lucide="terminal" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 id="app-title" class="font-extrabold text-xl tracking-tight text-slate-900">Stata Master</h1>
+                    <p id="app-subtitle" class="text-xs text-slate-500">Complete Interactive Guide</p>
+                </div>
+            </div>
+            
+            <div class="flex bg-gray-200 p-1 rounded-lg">
+                <button onclick="setLang('zh')" class="lang-btn flex-1 text-xs font-bold py-1.5 rounded-md transition-all" data-lang="zh">中文</button>
+                <button onclick="setLang('en')" class="lang-btn flex-1 text-xs font-bold py-1.5 rounded-md transition-all" data-lang="en">EN</button>
+                <button onclick="setLang('fr')" class="lang-btn flex-1 text-xs font-bold py-1.5 rounded-md transition-all" data-lang="fr">FR</button>
+            </div>
+        </div>
+
+        <nav id="nav-items" class="p-4 space-y-2 flex-1 overflow-y-auto">
+            </nav>
+
+        <div class="p-5 bg-slate-100 border-t border-slate-200 flex-shrink-0">
+            <h4 id="quick-ref-title" class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Operators</h4>
+            <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">==</div>
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">!=</div>
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">&</div>
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">|</div>
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">i.var</div>
+                <div class="bg-white p-2 text-center rounded border text-gray-600 shadow-sm">c.var</div>
+            </div>
+        </div>
+    </aside>
+
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-20 z-30 hidden backdrop-blur-sm md:hidden"></div>
+
+    <div class="fixed bottom-8 right-8 z-50 has-tooltip" id="gemini-container">
+        <span id="gemini-tooltip" class="tooltip absolute bottom-full right-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg text-center z-50">
+            Ask Google Gemini AI for more Stata questions
+        </span>
+        <a href="https://gemini.google.com/" target="_blank" id="gemini-fab"
+           class="fab-hover flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-xl cursor-pointer transition-all duration-200">
+            <i data-lucide="sparkles" class="w-7 h-7"></i>
+        </a>
+    </div>
+
+    <main class="flex-1 h-full overflow-y-auto bg-white scroll-smooth relative">
+        <div class="p-4 md:p-10 max-w-5xl mx-auto pb-20">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                <div class="flex flex-wrap gap-3">
+                    <div class="btn-tooltip-group">
+                        <span id="manual-tooltip" class="btn-tooltip">Latest version is Stata 19</span>
+                        <a href="https://www.stata.com/manuals18/u.pdf" id="manual-btn" target="_blank"
+                            class="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-100 border border-blue-200 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer no-underline">
+                            <i data-lucide="book" class="w-4 h-4"></i>
+                            <span id="btn-manual-text">Stata 18 Manual</span>
+                        </a>
+                    </div>
+                    
+                    <a href="https://www.statalist.org/forums/" id="forum-btn" target="_blank"
+                        class="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-semibold rounded-lg shadow-sm hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer no-underline">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        <span id="btn-forum-text">Stata Forum</span>
+                    </a>
+
+                    <a href="https://www.stata.com/" id="site-btn" target="_blank"
+                        class="px-4 py-2 bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-2 whitespace-nowrap cursor-pointer no-underline">
+                        <i data-lucide="globe" class="w-4 h-4"></i>
+                        <span id="btn-site-text">Stata Official</span>
+                    </a>
+                </div>
+            </div>
+        
+            <div id="main-content" class="fade-in">
+                </div>
+            
+            <footer class="mt-20 border-t border-gray-100 pt-10 pb-10 text-center text-gray-400 text-sm">
+                <p>© 2025 Stata Master.</p>
+                <p id="footer-text" class="mt-1">Based on Stata 17/18 Syntax Standards.</p>
+                <p id="last-edited" class="text-xs text-gray-300 mt-4"></p>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        // --- Data & State ---
+        let state = {
+            lang: 'en', // DEFAULT: ENGLISH
+            activeModule: 'basics',
+            isMenuOpen: false,
+            quiz: {
+                index: 0,
+                answer: '',
+                status: 'idle',
+                showHint: false
+            }
+        };
+
+        const translations = {
+            en: {
+                title: "Stata Master",
+                subtitle: "Complete Interactive Guide",
+                btnManual: "Stata 18 Manual (PDF)",
+                btnForum: "Stata Forum",
+                btnSite: "Stata Official",
+                copySuccess: "Link Copied!",
+                geminiTooltip: "Ask Google Gemini AI for more Stata questions",
+                manualTooltip: "Latest version is Stata 19",
+                modules: {
+                    basics: "1. Basics & Data Management",
+                    regression: "2. Regression & Modeling",
+                    viz: "3. Visualization Gallery",
+                    weighting: "4. Weighting & Survey",
+                    macros: "5. Macros (Local & Global)",
+                    comparison: "6. Stata vs SPSS Syntax",
+                    resources: "7. Resources & Links"
+                },
+                ui: {
+                    check: "Check Answer",
+                    correct: "Correct! Well done.",
+                    incorrect: "Incorrect. Try again.",
+                    explanation: "Explanation:",
+                    typeHere: "Type your Stata command here...",
+                    toc: "Jump to Section:",
+                    quickRef: "Quick Operators",
+                    footer: "Based on Stata 17/18 Syntax Standards.",
+                    navTitle: "Modules",
+                    nextQ: "Next Question",
+                    prevQ: "Previous",
+                    hint: "Show Hint",
+                    practice: "Practice Exercises",
+                    questionCount: "Question",
+                    resourceNotice: "Left-click to Copy Link, Right-click for Menu."
+                }
+            },
+            zh: {
+                title: "Stata大师",
+                subtitle: "全能交互式语法指南",
+                btnManual: "Stata 18 手册 (PDF)",
+                btnForum: "Stata 官方论坛",
+                btnSite: "Stata 官网",
+                copySuccess: "链接已复制！",
+                geminiTooltip: "更多关于 Stata 的问题请询问 Google Gemini AI",
+                manualTooltip: "最新版本是 Stata 19",
+                modules: {
+                    basics: "1. 基础语法与数据管理",
+                    regression: "2. 回归分析与模型",
+                    viz: "3. 可视化图库",
+                    weighting: "4. 加权与复杂调查",
+                    macros: "5. 宏 (Local & Global)",
+                    comparison: "6. Stata 与 SPSS 语法对比",
+                    resources: "7. 资源与链接"
+                },
+                ui: {
+                    check: "检查答案",
+                    correct: "正确！做得好。",
+                    incorrect: "不正确，请重试。",
+                    explanation: "解析：",
+                    typeHere: "在此输入 Stata 命令...",
+                    toc: "跳转到小节：",
+                    quickRef: "常用运算符",
+                    footer: "基于 Stata 17/18 语法标准。",
+                    navTitle: "课程模块",
+                    nextQ: "下一题",
+                    prevQ: "上一题",
+                    hint: "显示提示",
+                    practice: "实战练习",
+                    questionCount: "题目",
+                    resourceNotice: "左键点击复制链接，右键显示菜单。"
+                }
+            },
+            fr: {
+                title: "Maître Stata",
+                subtitle: "Guide Complet Interactif",
+                btnManual: "Manuel Stata 18 (PDF)",
+                btnForum: "Forum Stata",
+                btnSite: "Site Officiel Stata",
+                copySuccess: "Lien copié !",
+                geminiTooltip: "Posez plus de questions sur Stata à Google Gemini AI",
+                manualTooltip: "La dernière version est Stata 19",
+                modules: {
+                    basics: "1. Bases et Gestion de Données",
+                    regression: "2. Régression et Modélisation",
+                    viz: "3. Galerie de Visualisation",
+                    weighting: "4. Pondération et Enquêtes",
+                    macros: "5. Macros (Local & Global)",
+                    comparison: "6. Stata vs SPSS Syntaxe",
+                    resources: "7. Ressources"
+                },
+                ui: {
+                    check: "Vérifier",
+                    correct: "Correct ! Bien joué.",
+                    incorrect: "Incorrect. Réessayez.",
+                    explanation: "Explication :",
+                    typeHere: "Tapez votre commande Stata ici...",
+                    toc: "Sauter à la section :",
+                    quickRef: "Opérateurs Rapides",
+                    footer: "Basé sur les normes de syntaxe Stata 17/18.",
+                    navTitle: "Modules",
+                    nextQ: "Suivant",
+                    prevQ: "Précédent",
+                    hint: "Indice",
+                    practice: "Exercices Pratiques",
+                    questionCount: "Question",
+                    resourceNotice: "Clic gauche pour copier, Clic droit pour le menu."
+                }
+            }
+        };
+
+        const tutorialData = {
+            basics: {
+                icon: 'book-open',
+                description: {
+                    en: "Everything from opening files, logging, and data cleaning to advanced tabulation.",
+                    zh: "从打开文件、日志记录、高级数据清洗到复杂表格统计的全流程。",
+                    fr: "Tout, de l'ouverture des fichiers, de la journalisation et du nettoyage des données à la tabulation avancée."
+                },
+                content: [
+                    {
+                        id: "startup",
+                        subtitle: { en: "1.1 Start, Log (Append/Replace)", zh: "1.1 启动与日志 (Append/Replace)", fr: "1.1 Démarrage et Journal" },
+                        text: {
+                            en: "Always start a log. Use `append` to add to an existing log, or `replace` to overwrite it.",
+                            zh: "始终开启日志。使用 `append` 追加到现有日志，或使用 `replace` 覆盖它。",
+                            fr: "Commencez toujours un journal. Utilisez `append` pour ajouter à un journal existant, ou `replace` pour l'écraser."
+                        },
+                        codeBlock: {
+                            en: `* 1. Open Syntax Editor
+doedit
+
+* 2. Log: Overwrite existing file
+log using "analysis.log", replace
+
+* 2b. Log: Continue appending to existing file
+log using "analysis.log", append
+
+* 3. Load Data
+use "C:/data/mydata.dta", clear
+sysuse auto, clear // Example data`,
+                            zh: `* 1. 打开语法编辑器
+doedit
+
+* 2. 日志: 覆盖现有文件
+log using "analysis.log", replace
+
+* 2b. 日志: 追加到现有文件 (接着写)
+log using "analysis.log", append
+
+* 3. 加载数据
+use "C:/data/mydata.dta", clear
+sysuse auto, clear // 加载范例数据`,
+                            fr: `* 1. Éditeur de syntaxe
+doedit
+
+* 2. Journal : Écraser le fichier existant
+log using "analysis.log", replace
+
+* 2b. Journal : Continuer d'ajouter au fichier existant
+log using "analysis.log", append
+
+* 3. Charger les données
+use "C:/data/mydata.dta", clear
+sysuse auto, clear // Données d'exemple`
+                        }
+                    },
+                    {
+                        id: "shortcuts",
+                        subtitle: { en: "1.2 Abbreviations & Calculator", zh: "1.2 命令简写与计算器 (Display)", fr: "1.2 Abréviations & Calculatrice" },
+                        text: {
+                            en: "Stata allows abbreviations. <b>As long as the abbreviation is unique, commands and variable names can be abbreviated.</b> Use `display` (or `di`) as a quick calculator.",
+                            zh: "Stata 允许简写。<b>只要简写是唯一的，命令和变量名都可以简写。</b> 使用 `display` (或 `di`) 作为快速计算器。",
+                            fr: "Stata autorise les abréviations. <b>Tant que l'abréviation est unique, les commandes et les noms de variables peuvent être abrégés.</b> Utilisez `display` (ou `di`) comme calculatrice rapide."
+                        },
+                        codeBlock: {
+                            en: `* Calculator / Display text
+display 2 + 2
+di "The result is " 10 * 5
+
+* 'summarize' -> 'su'
+su price`,
+                            zh: `* 计算器 / 显示文本
+display 2 + 2
+di "计算结果是 " 10 * 5
+
+* 'summarize' -> 'su'
+su price`,
+                            fr: `* Calculatrice / Afficher du texte
+display 2 + 2
+di "Le résultat est " 10 * 5
+
+* 'summarize' -> 'su'
+su price`
+                        }
+                    },
+                    {
+                        id: "inspection",
+                        subtitle: { en: "1.3 Inspection & Missing Values", zh: "1.3 检查与缺失值查找", fr: "1.3 Inspection & Valeurs Manquantes" },
+                        text: {
+                            en: "Use `describe`, `codebook`. Find missing values using `misstable`.",
+                            zh: "使用 `describe` 查看结构, `codebook` 查看字典。使用 `misstable` 查找缺失模式。",
+                            fr: "Utilisez `describe`, `codebook`. Trouvez les valeurs manquantes avec `misstable`."
+                        },
+                        codeBlock: {
+                            en: `* Dataset structure
+describe
+
+* Variable Dictionary
+codebook price
+
+* Check for missing values
+misstable summarize
+misstable patterns
+
+* Detailed Summary
+sum price, detail`,
+                            zh: `* 数据集结构
+describe
+
+* 变量字典
+codebook price
+
+* 检查缺失值 (报告哪些变量有缺失)
+misstable summarize
+* 检查缺失值模式
+misstable patterns
+
+* 详细统计
+sum price, detail`,
+                            fr: `* Structure du jeu de données
+describe
+
+* Dictionnaire des variables
+codebook price
+
+* Vérifier les valeurs manquantes
+misstable summarize
+misstable patterns
+
+* Résumé détaillé
+sum price, detail`
+                        }
+                    },
+                    {
+                        id: "manipulation",
+                        subtitle: { en: "1.4 Advanced Cleaning (Recode, Egen, Rename)", zh: "1.4 高级清洗 (Recode, Egen, Rename)", fr: "1.4 Nettoyage Avancé" },
+                        text: {
+                            en: "Advanced `recode` with ranges, `egen cut` for binning, and complex `drop/keep`.",
+                            zh: "带范围的 `recode`，用于分箱的 `egen cut`，以及复杂的 `drop/keep` 逻辑。",
+                            fr: "`recode` avancé avec plages, `egen cut` pour le regroupement, et `drop/keep` complexes."
+                        },
+                        codeBlock: {
+                            en: `* Rename Variable
+rename old_name new_name
+
+* Advanced Recode (Ranges & Logic)
+* 1/4 means 1 to 4. Rules executed in order.
+recode age (18/25=1 "Young") (26/60=2 "Adult") (61/max=3 "Senior"), gen(age_group)
+
+* Recode with 'if' logic is not direct inside recode, use replace:
+gen group = 0
+replace group = 1 if (var1==1 | var2==1) & !missing(var1)
+
+* Treat specific values as missing
+recode score (999 = .)
+
+* Egen: Cut continuous variable into groups
+* at(0,20,40,100) creates intervals: [0,20), [20,40), [40,100)
+egen age_cat = cut(age), at(0, 20, 40, 100)
+
+* Complex Drop/Keep
+keep if (gender == 1 & age > 20) | (region == "North")
+drop if missing(salary) | salary < 0
+* Convert String to Numeric
+destring cost_str, replace ignore("$")`,
+                            zh: `* 重命名变量
+rename old_name new_name
+
+* 高级重编码 (范围与标签)
+* 18/25 代表 18 到 25。规则按顺序执行。
+recode age (18/25=1 "Young") (26/60=2 "Adult") (61/max=3 "Senior"), gen(age_group)
+
+* 复杂逻辑赋值 (Recode 内部不支持 if, 需用 replace)
+gen group = 0
+replace group = 1 if (var1==1 | var2==1) & !missing(var1)
+
+* 将特定值 (如999) 设为缺失值 (.)
+recode score (999 = .)
+
+* Egen: Cut 函数 (切割连续变量)
+* at(0,20,40,100) 创建区间: [0,20), [20,40), [40,100)
+egen age_cat = cut(age), at(0, 20, 40, 100)
+
+* 复杂的保留/删除
+keep if (gender == 1 & age > 20) | (region == "North")
+* 删除 salary 缺失 或者 小于 0 的样本
+drop if missing(salary) | salary < 0
+* 字符串转数值
+destring cost_str, replace ignore("$")`,
+                            fr: `* Renommer la variable
+rename old_name new_name
+
+* Recodage avancé (Plages et Logique)
+* 1/4 signifie de 1 à 4. Règles exécutées dans l'ordre.
+recode age (18/25=1 "Jeune") (26/60=2 "Adulte") (61/max=3 "Senior"), gen(age_group)
+
+* Recoder avec logique 'if' (utiliser replace) :
+gen group = 0
+replace group = 1 if (var1==1 | var2==1) & !missing(var1)
+
+* Traiter des valeurs spécifiques comme manquantes
+recode score (999 = .)
+
+* Egen : Couper une variable continue en groupes
+* at(0,20,40,100) crée des intervalles : [0,20), [20,40), [40,100)
+egen age_cat = cut(age), at(0, 20, 40, 100)
+
+* Drop/Keep complexe
+keep if (gender == 1 & age > 20) | (region == "Nord")
+drop if missing(salary) | salary < 0
+* Convertir Chaîne en Numérique
+destring cost_str, replace ignore("$")`
+                        }
+                    },
+                    {
+                        id: "labeling",
+                        subtitle: { en: "1.5 Labeling Variables & Values", zh: "1.5 变量与数值标签", fr: "1.5 Étiquetage" },
+                        text: {
+                            en: "Use `label variable` to name the column and `label values` to name the numeric categories.",
+                            zh: "使用 `label variable` 给变量命名，使用 `label values` 给数值类别命名。",
+                            fr: "Utilisez `label variable` pour nommer la colonne et `label values` pour nommer les catégories numériques."
+                        },
+                        codeBlock: {
+                            en: `* 1. Label the variable
+label variable varX "Employment Status"
+
+* 2. Define the set of value labels (define map)
+label define status_map 1 "Employed" 0 "Unemployed", replace
+
+* 3. Apply the label set to the variable
+label values varX status_map`,
+                            zh: `* 1. 变量标签 (给变量本身命名)
+label variable varX "就业状态"
+
+* 2. 定义数值标签集合 (定义映射关系)
+label define status_map 1 "在职" 0 "失业", replace
+
+* 3. 将标签集合应用到变量
+label values varX status_map`,
+                            fr: `* 1. Étiqueter la variable
+label variable varX "Statut d'emploi"
+
+* 2. Définir l'ensemble d'étiquettes de valeurs (définir la carte)
+label define status_map 1 "Employé" 0 "Chômeur", replace
+
+* 3. Appliquer l'ensemble d'étiquettes à la variable
+label values varX status_map`
+                        }
+                    },
+                    {
+                        id: "tabulate",
+                        subtitle: { en: "1.6 Basic Tabulation & Correlation", zh: "1.6 基础列表与相关性", fr: "1.6 Tabulation de base" },
+                        text: {
+                            en: "Basic `tab` and `corr`.",
+                            zh: "基础的 `tab` 和 `corr`。",
+                            fr: "Utilisation de base de `tab` et `corr`."
+                        },
+                        codeBlock: {
+                            en: `* Two-way Crosstab (Y by X, with Chi2 test)
+tab rep78 foreign, chi2
+
+* Pearson Correlation (Pairwise deletion)
+pwcorr price mpg weight, sig`,
+                            zh: `* 双变量交叉表 (Y 对 X，带卡方检验)
+tab rep78 foreign, chi2
+
+* 皮尔逊相关性 (成对删除缺失值)
+pwcorr price mpg weight, sig`,
+                            fr: `* Tableau croisé à deux entrées (Y par X, avec test Chi2)
+tab rep78 foreign, chi2
+
+* Corrélation de Pearson (suppression par paire)
+pwcorr price mpg weight, sig`
+                        }
+                    },
+                    {
+                         id: "adv-tables",
+                         subtitle: { en: "1.7 Advanced Tables & Stats", zh: "1.7 高级表格与统计 (Tab/Tabstat)", fr: "1.7 Tableaux Avancés" },
+                         text: {
+                             en: "Power users need `tab` options (gamma, V), `tabstat` for specific stats, `bysort`, and dummy generation.",
+                             zh: "高级用法：`tab` 的统计选项 (Gamma, V)，`tabstat` 定制统计量，`bysort` 多维分组，以及生成虚拟变量。",
+                             fr: "Les utilisateurs avancés ont besoin des options `tab` (gamma, V), `tabstat` pour des statistiques spécifiques, `bysort`, et la génération de variables muettes."
+                         },
+                         codeBlock: {
+                             en: `* 1. Complex Tab Options (No key, various tests)
+* col/row: percentages; nokey: hide legend; V: Cramer's V
+tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
+
+* 2. Clean Tab (No frequencies or percents? Stata defaults show freq)
+* Use 'tab1' or 'table' (new in Stata 17) for clean output, or:
+tab var, plot // simple visual
+
+* 3. Tabstat: Very powerful for specific stats
+tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
+
+* 4. Multi-way Tables & Summary
+* 3-way: by 'studentstatus', tab gender vs major
+bysort studentstatus: tab gender major
+* Tabulate gender and major, showing mean of SAT score in cells
+bysort studentstatus: tab gender major, sum(sat)
+
+* 5. Generate Dummy Variables automatically
+* Creates major_dum1, major_dum2, etc.
+tab major, generate(major_dum)
+
+* 6. Multiple Tables at once
+tab1 gender region race`,
+                             zh: `* 1. 复杂 Tab 选项 (隐藏图例, 各类检验)
+* col/row: 行列百分比; nokey: 隐藏图例; V: Cramer's V; exact: 精确检验
+tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
+
+* 2. 纯净表格
+* 使用 tab1 或 table (Stata 17新版)
+
+* 3. Tabstat: 强大的定制统计
+* 按 foreign 分组，显示 price 和 mpg 的均值、标准差、中位数等
+tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
+
+* 4. 多维表格与汇总
+* 三维表: 按 'studentstatus' 分组，做 gender 和 major 的交叉表
+bysort studentstatus: tab gender major
+* 交叉表单元格内显示第三个变量 (sat) 的均值
+bysort studentstatus: tab gender major, sum(sat)
+
+* 5. 自动生成虚拟变量 (Dummies)
+* 会自动创建 major_dum1, major_dum2 等变量
+tab major, generate(major_dum)
+
+* 6. 同时生成多个一维表
+tab1 gender region race`,
+                             fr: `* 1. Options Tab Complexes
+* col/row: pourcentages; nokey: masquer légende; V: V de Cramer
+tab gender status, col row nokey chi2 lrchi2 V exact gamma taub
+
+* 2. Tableau propre (tab1 ou table pour Stata 17)
+tab var, plot
+
+* 3. Tabstat : Très puissant pour des statistiques spécifiques
+tabstat price mpg, by(foreign) stat(mean sd n median min max) columns(statistics)
+
+* 4. Tableaux multidimensionnels & Résumé
+* 3 voies : par 'studentstatus', tab gender vs major
+bysort studentstatus: tab gender major
+* Tabuler gender et major, en montrant la moyenne de SAT dans les cellules
+bysort studentstatus: tab gender major, sum(sat)
+
+* 5. Générer des variables muettes (Dummies) automatiquement
+* Crée major_dum1, major_dum2, etc.
+tab major, generate(major_dum)
+
+* 6. Plusieurs tableaux à la fois
+tab1 gender region race`
+                         }
+                    }
+                ],
+                quizzes: [
+                    {
+                        question: { en: "Command to append logs instead of replacing.", zh: "追加日志而不是覆盖现有日志的选项。", fr: "Commande pour ajouter aux journaux au lieu de remplacer." },
+                        correctKeywords: ["append"],
+                        placeholder: "log using ..., ???",
+                        hint: "append",
+                        explanation: { en: "`log using file.log, append`", zh: "`log using file.log, append`", fr: "`log using file.log, append`" }
+                    },
+                    {
+                        question: { en: "Recode age 18-25 to 1 and 26-60 to 2.", zh: "将 age 的 18-25 岁编码为 1，26-60 岁编码为 2。", fr: "Recoder l'âge 18-25 en 1 et 26-60 en 2." },
+                        correctKeywords: ["recode", "age", "18/25", "26/60"],
+                        placeholder: "recode age ...",
+                        hint: "recode age (18/25=1) (26/60=2)",
+                        explanation: { en: "`recode age (18/25=1) (26/60=2)`", zh: "`recode age (18/25=1) (26/60=2)`", fr: "`recode age (18/25=1) (26/60=2)`" }
+                    },
+                    {
+                        question: { en: "Cut `age` into intervals at 0, 20, 40 using `egen`.", zh: "使用 `egen` 将 `age` 切割为 0, 20, 40 的区间。", fr: "Couper `age` en intervalles à 0, 20, 40 avec `egen`." },
+                        correctKeywords: ["egen", "cut", "at(0,20,40)"],
+                        placeholder: "egen new = cut(age), ...",
+                        hint: "at(0,20,40)",
+                        explanation: { en: "`egen x = cut(age), at(0,20,40)`", zh: "`egen x = cut(age), at(0,20,40)`", fr: "`egen x = cut(age), at(0,20,40)`" }
+                    },
+                    {
+                        question: { en: "Generate dummy variables from `region`.", zh: "从 `region` 变量生成虚拟变量。", fr: "Générer des variables muettes à partir de `region`." },
+                        correctKeywords: ["tab", "region", "gen", "generate"],
+                        placeholder: "tab region, ...",
+                        hint: "generate(new_var)",
+                        explanation: { en: "`tab region, gen(reg_dum)`", zh: "`tab region, gen(reg_dum)`", fr: "`tab region, gen(reg_dum)`" }
+                    },
+                    {
+                         question: { en: "Show Cramer's V and Gamma in crosstab.", zh: "在交叉表中显示 Cramer's V 和 Gamma。", fr: "Afficher le V de Cramer et Gamma dans le tableau croisé." },
+                         correctKeywords: ["tab", "v", "gamma"],
+                         placeholder: "tab y x, ...",
+                         hint: "tab y x, V gamma",
+                         explanation: { en: "`tab y x, V gamma`", zh: "`tab y x, V gamma`", fr: "`tab y x, V gamma`" }
+                    }
+                ]
+            },
+            regression: {
+                icon: 'calculator',
+                description: {
+                    en: "OLS, Logit, Robust errors, Interactions, and Exporting.",
+                    zh: "OLS、Logit、稳健标准误、交互效应以及表格输出。",
+                    fr: "OLS, Logit, Erreurs Robustes, Interactions et Exportation."
+                },
+                content: [
+                    {
+                        id: "reg-basics",
+                        subtitle: { en: "2.1 Basic & Conditional", zh: "2.1 基础与条件回归", fr: "2.1 Régression de base et conditionnelle" },
+                        text: {
+                            en: "Run regression on sample or subset.",
+                            zh: "运行回归。",
+                            fr: "Exécuter la régression sur l'échantillon ou un sous-ensemble."
+                        },
+                        codeBlock: {
+                            en: `* Standard OLS
+regress price mpg weight
+
+* Conditional
+regress price mpg weight if foreign == 1`,
+                            zh: `* 标准 OLS 回归
+regress price mpg weight
+
+* 条件回归
+regress price mpg weight if foreign == 1`,
+                            fr: `* OLS Standard
+regress price mpg weight
+
+* Conditionnelle
+regress price mpg weight if foreign == 1`
+                        }
+                    },
+                    {
+                        id: "categorical",
+                        subtitle: { en: "2.2 Reference Groups", zh: "2.2 基准组设置 (i. vs ib.)", fr: "2.2 Groupes de référence" },
+                        text: {
+                            en: "<span class='text-red-600 font-extrabold'>Use `i.` for categorical variables. Use `ib#.` to change the base group.</span> <br><span class='text-red-600 font-bold'>Note: Stata treats variables as continuous by default. Missing `i.` leads to incorrect results.</span>",
+                            zh: "<span class='text-red-600 font-extrabold'>分类变量必须用 `i.`。使用 `ib#.` 更改基准组（参照组）。</span><br><span class='text-red-600 font-bold'>注意：Stata 默认将所有变量视为连续变量回归。如果忘记给分类变量加 `i.`，结果会完全错误（被视为数值大小关系）。</span>",
+                            fr: "<span class='text-red-600 font-extrabold'>Utilisez `i.` pour les variables catégorielles. Utilisez `ib#.` pour changer le groupe de base.</span> <br><span class='text-red-600 font-bold'>Note : Stata traite par défaut les variables comme continues. L'oubli de `i.` conduit à des résultats incorrects.</span>"
+                        },
+                        codeBlock: {
+                            en: `* Default (First group is base)
+reg price i.rep78
+
+* Change base to group 3
+reg price ib3.rep78`,
+                            zh: `* 默认 (第一组为基准)
+reg price i.rep78
+
+* 将基准改为第 3 组
+reg price ib3.rep78`,
+                            fr: `* Défaut (Le premier groupe est la base)
+reg price i.rep78
+
+* Changer la base pour le groupe 3
+reg price ib3.rep78`
+                        }
+                    },
+                    {
+                        id: "interactions",
+                        subtitle: { en: "2.3 Interactions & Margins", zh: "2.3 交互效应与边际图", fr: "2.3 Interactions et Marges" },
+                        text: {
+                            en: "Crucial: Use `#` for interactions. Always follow with `margins`.",
+                            zh: "关键：使用 `#` 构建交互项。之后务必使用 `margins`。",
+                            fr: "Crucial : Utilisez `#` pour les interactions. Suivez toujours avec `margins`."
+                        },
+                        codeBlock: {
+                            en: `* Interaction
+reg price c.mpg##i.foreign
+
+* Calculate Slopes
+margins foreign, dydx(mpg)
+
+* Plot
+marginsplot`,
+                            zh: `* 交互作用
+reg price c.mpg##i.foreign
+
+* 计算斜率
+margins foreign, dydx(mpg)
+
+* 绘图
+marginsplot`,
+                            fr: `* Interaction
+reg price c.mpg##i.foreign
+
+* Calculer les pentes
+margins foreign, dydx(mpg)
+
+* Tracer
+marginsplot`
+                        }
+                    },
+                    {
+                        id: "logit",
+                        subtitle: { en: "2.4 Logit vs Logistic", zh: "2.4 Logit 与 Logistic", fr: "2.4 Logit vs Logistic" },
+                        text: {
+                            en: "`logit` = Coefficients. `logistic` = Odds Ratios.",
+                            zh: "`logit` 显示系数。`logistic` 显示比值比 (OR)。",
+                            fr: "`logit` = Coefficients. `logistic` = Odds Ratios."
+                        },
+                        codeBlock: {
+                            en: `* Coefficients
+logit foreign mpg
+
+* Odds Ratios (OR)
+logit foreign mpg, or
+logistic foreign mpg`,
+                            zh: `* 系数
+logit foreign mpg
+
+* 比值比 (OR)
+logit foreign mpg, or
+logistic foreign mpg`,
+                            fr: `* Coefficients
+logit foreign mpg
+
+* Odds Ratios (OR)
+logit foreign mpg, or
+logistic foreign mpg`
+                        }
+                    },
+                    {
+                        id: "export",
+                        subtitle: { en: "2.5 Exporting Results", zh: "2.5 结果输出 (esttab)", fr: "2.5 Exportation" },
+                        text: {
+                            en: "Use `estout` to create Word tables.",
+                            zh: "使用 `estout` 创建 Word 表格。",
+                            fr: "Utilisez `estout` pour créer des tableaux Word."
+                        },
+                        codeBlock: {
+                            en: `* Install
+ssc install estout
+
+* Store & Export
+reg price mpg
+eststo m1
+esttab m1 using "res.rtf", replace se ar2 label`,
+                            zh: `* 安装
+ssc install estout
+
+* 储存与导出
+reg price mpg
+eststo m1
+esttab m1 using "res.rtf", replace se ar2 label`,
+                            fr: `* Installer
+ssc install estout
+
+* Stocker et Exporter
+reg price mpg
+eststo m1
+esttab m1 using "res.rtf", replace se ar2 label`
+                        }
+                    },
+                    {
+                         id: "robust",
+                         subtitle: { en: "2.6 Robust Regression", zh: "2.6 稳健回归 (Robust)", fr: "2.6 Régression Robuste" },
+                         text: {
+                             en: "Handle heteroskedasticity with `vce(robust)` or outliers with `rreg`.",
+                             zh: "使用 `vce(robust)` 处理异方差，或使用 `rreg` 处理离群值。",
+                             fr: "Gérez l'hétéroscédasticité avec `vce(robust)` ou les valeurs aberrantes avec `rreg`."
+                         },
+                         codeBlock: {
+                             en: `* Robust Standard Errors (Heteroskedasticity)
+regress price mpg weight, vce(robust)
+
+* Cluster Standard Errors (e.g., by classroom)
+regress score income, vce(cluster class_id)
+
+* Robust Regression (Downweights outliers)
+rreg price mpg weight`,
+                             zh: `* 稳健标准误 (解决异方差)
+regress price mpg weight, vce(robust)
+
+* 聚类标准误 (例如按班级聚类)
+regress score income, vce(cluster class_id)
+
+* 稳健回归 (降低离群值得权重)
+rreg price mpg weight`,
+                             fr: `* Erreurs types robustes (Hétéroscédasticité)
+regress price mpg weight, vce(robust)
+
+* Erreurs types clusterisées (par ex. par classe)
+regress score income, vce(cluster class_id)
+
+* Régression robuste (Pondère moins les valeurs aberrantes)
+rreg price mpg weight`
+                         }
+                    }
+                ],
+                quizzes: [
+                    {
+                        question: { en: "Run regression with interaction between `age` and `gender`.", zh: "运行包含 `age` 和 `gender` 交互项的回归。", fr: "Exécuter la régression avec interaction entre `age` et `gender`." },
+                        correctKeywords: ["reg", "c.age##i.gender"],
+                        placeholder: "reg y c.age##i.gender",
+                        hint: "reg y c.age##i.gender",
+                        explanation: { en: "`reg y c.age##i.gender`", zh: "`reg y c.age##i.gender`", fr: "`reg y c.age##i.gender`" }
+                    },
+                    {
+                         question: { en: "Regression with robust standard errors.", zh: "使用稳健标准误的回归。", fr: "Régression avec erreurs types robustes." },
+                         correctKeywords: ["vce(robust)", "robust"],
+                         placeholder: "reg y x, ...",
+                         hint: "vce(robust)",
+                         explanation: { en: "`reg y x, vce(robust)`", zh: "`reg y x, vce(robust)`", fr: "`reg y x, vce(robust)`" }
+                    }
+                ]
+            },
+            viz: {
+                icon: 'bar-chart-2',
+                description: {
+                    en: "Scatter, Histogram, Bar, Matrix, and Customization.",
+                    zh: "散点图、直方图、条形图、矩阵图及高级定制。",
+                    fr: "Nuage de points, Histogramme, Barres, Matrice et Personnalisation."
+                },
+                content: [
+                    {
+                        id: "basic-viz",
+                        subtitle: { en: "3.1 Basic Plots", zh: "3.1 基础绘图", fr: "3.1 Graphiques de base" },
+                        text: {
+                            en: "Scatter plots and histograms.",
+                            zh: "散点图和直方图。",
+                            fr: "Nuages de points et histogrammes."
+                        },
+                        codeBlock: {
+                            en: `* Histogram
+hist price, freq
+
+* Scatter Plot
+scatter price mpg`,
+                            zh: `* 直方图
+hist price, freq
+
+* 散点图
+scatter price mpg`,
+                            fr: `* Histogramme
+hist price, freq
+
+* Nuage de points
+scatter price mpg`
+                        }
+                    },
+                    {
+                        id: "categorical-viz",
+                        subtitle: { en: "3.2 Categorical Plots", zh: "3.2 分类绘图", fr: "3.2 Graphiques catégoriels" },
+                        text: {
+                            en: "Bar charts and Dot charts. <b>Note:</b> `catplot` is for frequencies.",
+                            zh: "条形图和点图。<b>注意:</b> `catplot` 专用于频数/百分比展示。",
+                            fr: "Diagrammes à barres et à points. <b>Note :</b> `catplot` est pour les fréquences."
+                        },
+                        codeBlock: {
+                            en: `* Bar chart
+graph bar (mean) price, over(region)
+
+* Dot chart
+graph dot (mean) price, over(region)
+
+* Catplot (Needs install)
+ssc install catplot
+catplot region, percent`,
+                            zh: `* 条形图
+graph bar (mean) price, over(region)
+
+* 点图
+graph dot (mean) price, over(region)
+
+* Catplot (需安装 - 专用于分类变量频数)
+ssc install catplot
+catplot region, percent`,
+                            fr: `* Diagramme à barres
+graph bar (mean) price, over(region)
+
+* Diagramme à points
+graph dot (mean) price, over(region)
+
+* Catplot (Nécessite installation)
+ssc install catplot
+catplot region, percent`
+                        }
+                    },
+                    {
+                        id: "advanced-viz",
+                        subtitle: { en: "3.3 Matrix & Custom", zh: "3.3 矩阵与定制", fr: "3.3 Matrice et Personnalisation" },
+                        text: {
+                            en: "Matrix plots and Schemes.",
+                            zh: "矩阵图与配色方案。",
+                            fr: "Graphiques matriciels et schémas."
+                        },
+                        codeBlock: {
+                            en: `* Matrix Plot
+graph matrix price mpg weight, half
+
+* Scheme
+set scheme s1mono`,
+                            zh: `* 矩阵散点图
+graph matrix price mpg weight, half
+
+* 设置黑白配色
+set scheme s1mono`,
+                            fr: `* Graphique matriciel
+graph matrix price mpg weight, half
+
+* Schéma
+set scheme s1mono`
+                        }
+                    },
+                    {
+                         id: "coef-viz",
+                         subtitle: { en: "3.4 Model Visualization (Coefplot/OR)", zh: "3.4 模型可视化 (Coefplot/OR)", fr: "3.4 Visualisation de modèle (Coefplot/OR)" },
+                         text: {
+                             en: "To plot <b>Odds Ratios</b> or Regression Coefficients, use `coefplot` (Standard), not `catplot`.",
+                             zh: "若要绘制 <b>Odds Ratios (比值比)</b> 或回归系数图，请使用 `coefplot` (行业标准)，而不是 `catplot` (catplot 仅用于频数)。",
+                             fr: "Pour tracer des <b>Odds Ratios</b> ou des coefficients de régression, utilisez `coefplot` (Standard), et non `catplot`."
+                         },
+                         codeBlock: {
+                             en: `* Install Coefplot
+ssc install coefplot
+
+* 1. Run Regression
+logit foreign mpg price, or
+
+* 2. Plot Odds Ratios (eform option)
+* drop(_cons): remove constant
+* xline(1): reference line for OR
+coefplot, drop(_cons) xline(1) eform`,
+                             zh: `* 安装 Coefplot
+ssc install coefplot
+
+* 1. 运行回归
+logit foreign mpg price, or
+
+* 2. 绘制 Odds Ratios 图 (关键选项: eform)
+* drop(_cons): 移除常数项
+* xline(1): OR 的基准线为 1
+coefplot, drop(_cons) xline(1) eform`,
+                             fr: `* Installer Coefplot
+ssc install coefplot
+
+* 1. Exécuter la régression
+logit foreign mpg price, or
+
+* 2. Tracer les Odds Ratios (option eform)
+* drop(_cons): supprimer la constante
+* xline(1): ligne de référence pour OR
+coefplot, drop(_cons) xline(1) eform`
+                         }
+                    }
+                ],
+                quizzes: [
+                    {
+                        question: { en: "Create a scatter plot of `wage` (y) vs `exp` (x).", zh: "创建 `wage` (y) 对 `exp` (x) 的散点图。", fr: "Créer un nuage de points de `wage` (y) vs `exp` (x)." },
+                        correctKeywords: ["scatter", "wage", "exp"],
+                        placeholder: "scatter y x",
+                        hint: "scatter y x",
+                        explanation: { en: "`scatter wage exp`", zh: "`scatter wage exp`", fr: "`scatter wage exp`" }
+                    }
+                ]
+            },
+            weighting: {
+                icon: 'scale',
+                description: {
+                    en: "Survey setup, Bootstrap, and Weight types.",
+                    zh: "调查设定、Bootstrap 以及权重类型。",
+                    fr: "Configuration d'enquête, Bootstrap et types de poids."
+                },
+                content: [
+                    {
+                         id: "svyset",
+                         subtitle: { en: "4.1 Survey Setup", zh: "4.1 调查设定 (svyset)", fr: "4.1 Configuration d'enquête" },
+                         text: {
+                             en: "Declare PSU, Strata, and Weights.",
+                             zh: "声明 PSU, Strata 和 Weights。",
+                             fr: "Déclarer PSU, Strata et Poids."
+                         },
+                         codeBlock: {
+                             en: `* Setup
+svyset psu_var [pw=wgt], strata(strat_var)
+
+* Analysis
+svy: mean price`,
+                             zh: `* 设定
+svyset psu_var [pw=wgt], strata(strat_var)
+
+* 分析
+svy: mean price`,
+                             fr: `* Configuration
+svyset psu_var [pw=wgt], strata(strat_var)
+
+* Analyse
+svy: mean price`
+                         }
+                    },
+                    {
+                         id: "bootstrap",
+                         subtitle: { en: "4.2 Bootstrap Weights", zh: "4.2 Bootstrap 权重", fr: "4.2 Poids Bootstrap" },
+                         text: {
+                             en: "Complex surveys often use bootstrap weights. StatsCan example included (applicable to General Social Survey 2013 and 2020).",
+                             zh: "复杂调查常使用 Bootstrap 权重。包含加拿大统计局 (StatsCan) 常用示例 (适用于 General Social Survey 2013 和 2020)。",
+                             fr: "Les enquêtes complexes utilisent souvent des poids bootstrap. Exemple StatsCan inclus (applicable à l'Enquête sociale générale 2013 et 2020)."
+                         },
+                         codeBlock: {
+                             en: `* 1. Standard Bootstrap Setup
+svyset [pw=wgt], bsrweight(bs_*) vce(bootstrap)
+
+* 2. StatsCan Example (Canada - GSS 2013/2020)
+* wght_per: Person weight
+* wtbs_*: 500 bootstrap weights
+* dof(500): Degrees of freedom
+* mse: Use Mean Squared Error
+svyset [pweight=wght_per], bsrweight(wtbs_001- wtbs_500) vce(bootstrap) dof(500) mse`,
+                             zh: `* 1. 标准 Bootstrap 设定
+svyset [pw=wgt], bsrweight(bs_*) vce(bootstrap)
+
+* 2. 加拿大统计局 (StatsCan) 示例 (GSS 2013/2020)
+* wght_per: 个人权重
+* wtbs_*: 500 个 bootstrap 权重
+* dof(500): 自由度设为 500
+* mse: 使用均方误差 (Mean Squared Error)
+svyset [pweight=wght_per], bsrweight(wtbs_001- wtbs_500) vce(bootstrap) dof(500) mse`,
+                             fr: `* 1. Configuration Bootstrap Standard
+svyset [pw=wgt], bsrweight(bs_*) vce(bootstrap)
+
+* 2. Exemple StatsCan (Canada - ESG 2013/2020)
+* wght_per: Poids de la personne
+* wtbs_*: 500 poids bootstrap
+* dof(500): Degrés de liberté
+* mse: Utiliser l'erreur quadratique moyenne
+svyset [pweight=wght_per], bsrweight(wtbs_001- wtbs_500) vce(bootstrap) dof(500) mse`
+                         }
+                    },
+                    {
+                         id: "weight-types",
+                         subtitle: { en: "4.3 Weight Types (fweight, iweight, pweight)", zh: "4.3 权重类型详解 (fweight, iweight, pweight)", fr: "4.3 Types de poids (fweight, iweight, pweight)" },
+                         text: {
+                             en: "Distinguish different weights:<br>1. <b>fweight</b> (Frequency): Aggregated data.<br>2. <b>pweight</b> (Sampling): Population inference.<br>3. <b>iweight</b> (Importance): Arbitrary.<br><br><b>Note:</b> We typically use <b>pweight</b> for descriptive statistics and regression analysis to infer to the population.<br>Reference: <a href='https://www.reed.edu/psychology/stata/gs/tutorials/weights.html' target='_blank' class='text-blue-600 hover:underline'>Reed College Guide</a>.",
+                             zh: "区分不同权重：<br>1. <b>fweight</b> (频数权重): 数据是汇总过的，代表重复行。<br>2. <b>pweight</b> (概率/抽样权重): 用于推断总体。<br>3. <b>iweight</b> (重要性权重): 任意指定的重要性。<br><br><b>注意：</b> 我们通常在描述性统计和回归分析中使用 <b>pweight</b> 以推断总体。<br>参考: <a href='https://www.reed.edu/psychology/stata/gs/tutorials/weights.html' target='_blank' class='text-blue-600 hover:underline'>Reed College Guide</a>",
+                             fr: "Distinguer les différents poids :<br>1. <b>fweight</b> (Fréquence) : Données agrégées.<br>2. <b>pweight</b> (Échantillonnage) : Inférence de la population.<br>3. <b>iweight</b> (Importance) : Arbitraire.<br><br><b>Note :</b> Nous utilisons généralement <b>pweight</b> pour les statistiques descriptives et l'analyse de régression afin d'inférer à la population.<br>Référence : <a href='https://www.reed.edu/psychology/stata/gs/tutorials/weights.html' target='_blank' class='text-blue-600 hover:underline'>Guide Reed College</a>."
+                         },
+                         codeBlock: {
+                             en: `* 1. fweight (Frequency)
+* Use when data is aggregated (e.g., one row represents N people)
+tab response [fw=count]
+regress y x [fw=count]
+
+* 2. pweight (Sampling/Probability)
+* Use for survey inference (population estimates)
+* Method A: Direct in command (some commands support it)
+regress y x [pw=wgt]
+* Method B: Svyset (Best for Crosstabs)
+svyset [pw=wgt]
+svy: tab region gender, col
+
+* 3. iweight (Importance)
+* Use for programmer-defined importance (e.g., algorithm weights)
+regress y x [iw=importance_score]`,
+                             zh: `* 1. fweight (频数权重)
+* 当数据是汇总数据时使用 (例如: 每一行代表 N 个人)
+tab response [fw=count]
+regress y x [fw=count]
+
+* 2. pweight (抽样/概率权重)
+* 用于调查推断 (总体估计)
+* 方法 A: 直接在命令中指定 (部分命令支持)
+regress y x [pw=wgt]
+* 方法 B: Svyset (交叉表推荐写法)
+svyset [pw=wgt]
+svy: tab region gender, col
+
+* 3. iweight (重要性权重)
+* 用于自定义重要性 (例如: 算法权重/贡献度)
+regress y x [iw=importance_score]`,
+                             fr: `* 1. fweight (Fréquence)
+* Utiliser quand les données sont agrégées (ex: une ligne représente N personnes)
+tab response [fw=count]
+regress y x [fw=count]
+
+* 2. pweight (Échantillonnage/Probabilité)
+* Utiliser pour l'inférence d'enquête (estimations de population)
+* Méthode A : Directe dans la commande
+regress y x [pw=wgt]
+* Méthode B : Svyset (Meilleur pour tableaux croisés)
+svyset [pw=wgt]
+svy: tab region gender, col
+
+* 3. iweight (Importance)
+* Utiliser pour l'importance définie par le programmeur (ex: poids d'algorithme)
+regress y x [iw=importance_score]`
+                         }
+                    }
+                ],
+                quizzes: [
+                    {
+                        question: { en: "Command prefix for survey analysis.", zh: "调查数据分析的命令前缀。", fr: "Préfixe de commande pour l'analyse d'enquête." },
+                        correctKeywords: ["svy"],
+                        placeholder: "svy:",
+                        hint: "svy:",
+                        explanation: { en: "`svy:`", zh: "`svy:`", fr: "`svy:`" }
+                    }
+                ]
+            },
+            macros: {
+                icon: 'code',
+                description: {
+                    en: "Automate tasks with Local and Global macros.",
+                    zh: "使用 Local 和 Global 宏来自动化任务、循环和管理文件。",
+                    fr: "Automatiser les tâches avec des macros Locales et Globales."
+                },
+                content: [
+                    {
+                        id: "macros-usage",
+                        subtitle: { en: "5.1 Local vs Global", zh: "5.1 局部宏与全局宏", fr: "5.1 Local vs Global" },
+                        text: {
+                            en: "Why use macros? <b>Efficiency</b> (store lists), <b>Automation</b> (loops), and <b>Safety</b> (locals expire).",
+                            zh: "为什么要用宏？<br>1. <b>效率</b>: 一次性定义一长串控制变量。<br>2. <b>自动化</b>: 在循环中使用。<br>3. <b>安全性</b>: Local 运行完即消失，不会污染环境。",
+                            fr: "Pourquoi utiliser des macros ?<br>1. <b>Efficacité</b> : stocker des listes.<br>2. <b>Automatisation</b> : utiliser dans des boucles.<br>3. <b>Sécurité</b> : les locaux expirent et ne polluent pas l'environnement."
+                        },
+                        codeBlock: {
+                            en: `* 1. Local Macro (Safe, temporary)
+* Define:
+local controls "age gender income"
+* Use (Note the backtick \` and apostrophe ' ):
+regress satisfaction \`controls'
+
+* 2. Global Macro (Risky, persistent)
+* Define:
+global path "C:/Users/Data"
+* Use (Note the $ sign):
+use "$path/mydata.dta", clear`,
+                            zh: `* 1. 局部宏 (Local - 安全，临时的)
+* 定义:
+local controls "age gender income"
+* 使用 (注意是反引号 \` 和单引号 ' 包围):
+regress satisfaction \`controls'
+
+* 2. 全局宏 (Global - 持久，直到关闭软件)
+* 定义:
+global path "C:/Users/Data"
+* 使用 (注意使用 $ 符号):
+use "$path/mydata.dta", clear`,
+                            fr: `* 1. Macro Locale (Sûr, temporaire)
+* Définir :
+local controls "age gender income"
+* Utiliser (Notez l'accent grave \` et l'apostrophe ' ) :
+regress satisfaction \`controls'
+
+* 2. Macro Globale (Risqué, persistant)
+* Définir :
+global path "C:/Users/Data"
+* Utiliser (Notez le signe $) :
+use "$path/mydata.dta", clear`
+                        }
+                    },
+                    {
+                        id: "macros-loops",
+                        subtitle: { en: "5.2 Loops & Tempfiles", zh: "5.2 循环与暂元文件 (实战核心)", fr: "5.2 Boucles & Fichiers Temporaires" },
+                        text: {
+                            en: "The real power of macros: `foreach` loops and `tempfile` for intermediate data.",
+                            zh: "宏的真正威力：使用 `foreach` 批量处理变量/文件，以及使用 `tempfile` 存储中间数据（无需产生垃圾文件）。",
+                            fr: "La vraie puissance des macros : boucles `foreach` et `tempfile` pour les données intermédiaires."
+                        },
+                        codeBlock: {
+                             en: `* 1. Loop through variables
+foreach var in price mpg weight {
+    summarize \`var'
+    hist \`var', name(g_\`var', replace)
+}
+
+* 2. Loop through files (e.g., 2010 to 2020)
+forvalues i = 2010/2020 {
+    display "Processing year \`i'"
+}
+
+* 3. Tempfile (Auto-deleted after run)
+preserve
+    collapse (mean) price, by(region)
+    tempfile region_stats
+    save "\`region_stats'"
+restore
+merge m:1 region using "\`region_stats'"`,
+                             zh: `* 1. 循环处理变量
+foreach var in price mpg weight {
+    * 每次循环，\`var' 都会变成列表中的下一个变量名
+    summarize \`var'
+    hist \`var', name(g_\`var', replace)
+}
+
+* 2. 数值循环 (例如处理 2010 到 2020 年的数据)
+forvalues i = 2010/2020 {
+    display "正在处理第 \`i' 年"
+}
+
+* 3. 暂元文件 (Tempfile - 运行结束自动删除，不占硬盘)
+preserve
+    collapse (mean) price, by(region)
+    tempfile region_stats
+    save "\`region_stats'"
+restore
+merge m:1 region using "\`region_stats'"`,
+                             fr: `* 1. Boucle sur les variables
+foreach var in price mpg weight {
+    summarize \`var'
+    hist \`var', name(g_\`var', replace)
+}
+
+* 2. Boucle sur les fichiers (par ex. 2010 à 2020)
+forvalues i = 2010/2020 {
+    display "Traitement de l'année \`i'"
+}
+
+* 3. Fichier temporaire (Auto-supprimé après exécution)
+preserve
+    collapse (mean) price, by(region)
+    tempfile region_stats
+    save "\`region_stats'"
+restore
+merge m:1 region using "\`region_stats'"`
+                        }
+                    }
+                ],
+                quizzes: [
+                     {
+                        question: { en: "Symbol to access a global macro named `path`.", zh: "调用名为 `path` 的全局宏的符号。", fr: "Symbole pour accéder à une macro globale nommée `path`." },
+                        correctKeywords: ["$path", "$"],
+                        placeholder: "$path",
+                        hint: "$",
+                        explanation: { en: "`$path`", zh: "`$path`", fr: "`$path`" }
+                    },
+                    {
+                        question: { en: "Loop command for a list of variables.", zh: "用于遍历变量列表的循环命令。", fr: "Commande de boucle pour une liste de variables." },
+                        correctKeywords: ["foreach"],
+                        placeholder: "foreach ...",
+                        hint: "foreach",
+                        explanation: { en: "`foreach var in ...`", zh: "`foreach var in ...`", fr: "`foreach`" }
+                    }
+                ]
+            },
+            comparison: {
+                icon: 'layers',
+                description: { en: "Extended Comparison: Stata vs SPSS syntax.", zh: "深度对比：Stata 与 SPSS 语法 (Syntax Comparison)。", fr: "Comparaison étendue : Syntaxe Stata vs SPSS." },
+                content: [
+                    {
+                        id: "syntax-compare",
+                        subtitle: { en: "6.1 Syntax Rosetta Stone", zh: "6.1 语法对照表 (Rosetta Stone)", fr: "6.1 Pierre de Rosette Syntaxique" },
+                        text: { en: "Comprehensive syntax comparison.", zh: "包含数据清洗、分析、合并等全方位对比。", fr: "Comparaison complète de la syntaxe." },
+                        customTable: true
+                    }
+                ],
+                quizzes: [
+                    {
+                        question: { en: "Stata equivalent of SPSS `SELECT IF`.", zh: "SPSS `SELECT IF` 在 Stata 中对应什么？", fr: "Équivalent Stata de SPSS `SELECT IF`." },
+                        correctKeywords: ["keep", "if"],
+                        placeholder: "keep if ...",
+                        hint: "keep if",
+                        explanation: { en: "`keep if`", zh: "`keep if`", fr: "`keep if`" }
+                    }
+                ]
+            },
+            resources: {
+                icon: 'link',
+                description: {
+                    en: "External resources and Cheat Sheets.",
+                    zh: "外部资源、速查表与学习资料。",
+                    fr: "Ressources externes et aide-mémoire."
+                },
+                content: [
+                    {
+                        id: "res-links",
+                        subtitle: { en: "7.1 Useful Links", zh: "7.1 常用链接资源", fr: "7.1 Liens utiles" },
+                        text: {
+                            en: "Click left to copy link. Right click for menu.",
+                            zh: "左键点击复制链接。右键点击显示菜单。",
+                            fr: "Clic gauche pour copier le lien. Clic droit pour le menu."
+                        },
+                        resourceList: [
+                            { name: "Stata Cheat Sheet (PDF)", url: "https://www.stata.com/flyers/statacheatsheets.pdf" },
+                            { name: "Stata FAQ (Support)", url: "http://stata.com/support/faqs/" },
+                            { name: "UCLA IDRE Stata", url: "https://stats.oarc.ucla.edu/stata/" },
+                            { name: "Resources for Learning (Further Reading)", url: "https://www.stata.com/links/resources-for-learning-stata/", highlight: true }
+                        ]
+                    }
+                ],
+                quizzes: [] // No quizzes for resources
+            }
+        };
+
+        // --- UI Rendering ---
+
+        function renderApp() {
+            renderSidebar();
+            renderText();
+            renderMainContent();
+            lucide.createIcons();
+        }
+
+        function setLang(l) {
+            state.lang = l;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === l) {
+                    btn.classList.add('bg-white', 'text-blue-700', 'shadow-sm');
+                    btn.classList.remove('text-gray-500');
+                } else {
+                    btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm');
+                    btn.classList.add('text-gray-500');
+                }
+            });
+            document.getElementById('lang-label-mobile').textContent = l.toUpperCase();
+            
+            // Update Footer Date
+            const date = new Date();
+            const dateString = date.toLocaleDateString(l === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            let prefix = "Last Edited";
+            if(l === 'zh') prefix = "最后更新";
+            if(l === 'fr') prefix = "Dernière modification";
+            document.getElementById('last-edited').textContent = `${prefix}: ${dateString}`;
+
+            renderApp();
+        }
+
+        function setActiveModule(id) {
+            state.activeModule = id;
+            state.quiz = { index: 0, answer: '', status: 'idle', showHint: false };
+            renderApp();
+            state.isMenuOpen = false;
+            updateMobileMenu();
+            document.querySelector('main').scrollTop = 0;
+        }
+
+        function renderText() {
+            const t = translations[state.lang];
+            document.getElementById('app-title').textContent = t.title;
+            document.getElementById('app-subtitle').textContent = t.subtitle;
+            document.getElementById('mobile-title').textContent = t.title;
+            if(document.getElementById('nav-title')) document.getElementById('nav-title').textContent = t.ui.navTitle;
+            document.getElementById('quick-ref-title').textContent = t.ui.quickRef;
+            document.getElementById('footer-text').textContent = t.ui.footer;
+            
+            // Tooltip text updates
+            document.getElementById('gemini-tooltip').textContent = t.geminiTooltip;
+            document.getElementById('manual-tooltip').textContent = t.manualTooltip;
+            
+            // Top Buttons
+            document.getElementById('btn-manual-text').textContent = t.btnManual;
+            document.getElementById('btn-forum-text').textContent = t.btnForum;
+            document.getElementById('btn-site-text').textContent = t.btnSite;
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('nav-items');
+            const t = translations[state.lang];
+            
+            // Header for nav
+            nav.innerHTML = `<div id="nav-title" class="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-2 mt-2">${t.ui.navTitle}</div>`;
+            
+            Object.keys(tutorialData).forEach(key => {
+                const data = tutorialData[key];
+                const isActive = state.activeModule === key;
+                const btn = document.createElement('button');
+                btn.className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 text-left ${isActive ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-gray-600 hover:bg-white hover:shadow-sm"}`;
+                btn.onclick = () => setActiveModule(key);
+                btn.innerHTML = `
+                    <i data-lucide="${data.icon}" class="w-5 h-5"></i>
+                    <span class="text-sm font-medium flex-1">${t.modules[key]}</span>
+                    ${isActive ? '<i data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i>' : ''}
+                `;
+                nav.appendChild(btn);
+            });
+        }
+
+        function renderMainContent() {
+            const main = document.getElementById('main-content');
+            const data = tutorialData[state.activeModule];
+            const t = translations[state.lang];
+            const lang = state.lang;
+
+            let html = `
+                <div class="mb-6 border-b border-gray-200 pb-6">
+                    <div class="flex items-center gap-3 text-blue-600 mb-2">
+                        <i data-lucide="${data.icon}" class="w-5 h-5"></i>
+                        <span class="uppercase tracking-wider text-xs font-bold">Module</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900">${t.modules[state.activeModule]}</h1>
+                    <p class="text-gray-500 mt-3 text-lg font-light">${data.description[lang]}</p>
+                </div>
+                
+                ${data.content.length > 1 ? `
+                <div class="mb-8 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+                        ${t.ui.toc}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        ${data.content.map(section => `
+                            <button onclick="document.getElementById('${section.id}').scrollIntoView({behavior: 'smooth', block: 'start'})" 
+                                class="text-sm px-3 py-2 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-700 rounded-full transition-colors border border-transparent hover:border-blue-200 truncate w-full text-left">
+                                ${typeof section.subtitle === 'object' ? section.subtitle[lang] : section.subtitle}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>` : ''}
+
+                <div class="space-y-12">`;
+            
+            data.content.forEach(section => {
+                html += `
+                    <div id="${section.id}" class="scroll-mt-24">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center group cursor-pointer" onclick="this.scrollIntoView({behavior:'smooth'})">
+                            <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full group-hover:h-8 transition-all duration-300"></span>
+                            ${section.subtitle[lang]}
+                        </h2>
+                        ${section.text ? `<p class="text-gray-700 leading-relaxed mb-4">${section.text[lang]}</p>` : ''}
+                `;
+                if (section.codeBlock) {
+                    const code = section.codeBlock[lang] || section.codeBlock['en'];
+                    html += renderCodeBlock(code);
+                }
+                if (section.customTable) {
+                    html += renderComparisonTable();
+                }
+                if (section.resourceList) {
+                    html += renderResourceList(section.resourceList, t);
+                }
+                html += `</div>`;
+            });
+            html += `</div>`;
+
+            if (data.quizzes && data.quizzes.length > 0) {
+                html += renderQuizSection(data.quizzes, t, lang);
+            }
+            main.innerHTML = html;
+        }
+
+        function renderCodeBlock(code) {
+            // Extended keywords list including new ones
+            const keywords = ['regress', 'reg', 'logit', 'logistic', 'ologit', 'summarize', 'sum', 'su', 'tabulate', 'tab', 'tab1', 'tabstat', 'table', 'generate', 'gen', 'replace', 'recode', 'destring', 'tostring', 'drop', 'keep', 'sysuse', 'use', 'scatter', 'twoway', 'hist', 'histogram', 'graph', 'svyset', 'svy:', 'describe', 'label', 'log', 'estat', 'eststo', 'esttab', 'margins', 'marginsplot', 'ssc', 'set', 'catplot', 'codebook', 'doedit', 'help', 'corr', 'pwcorr', 'rename', 'egen', 'display', 'di', 'local', 'global', 'rreg', 'misstable', 'bysort', 'foreach', 'forvalues', 'tempfile', 'save', 'merge', 'restore', 'preserve', 'collapse', 'coefplot'];
+
+            let output = `<div class="bg-gray-50 text-gray-800 p-4 rounded-lg font-mono text-sm overflow-x-auto border border-gray-200 shadow-sm my-4 leading-relaxed">`;
+            const codeLines = code.split('\n');
+            let inBlockComment = false;
+
+            codeLines.forEach(line => {
+                let originalLine = line;
+                let trimmedLine = line.trim();
+                let className = "text-gray-900"; 
+                let processedLine = originalLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                // Block Comment Detection (/* ... */)
+                if (trimmedLine.startsWith('/*')) {
+                    inBlockComment = true;
+                    if (trimmedLine.includes('*/')) inBlockComment = false;
+                }
+
+                if (inBlockComment || trimmedLine.startsWith('*') || trimmedLine.startsWith('//')) {
+                    // MODIFIED: Removed font-medium to ensure not bold
+                    className = "text-green-600 italic"; 
+                    if (trimmedLine.includes('*/') && !trimmedLine.startsWith('/*')) inBlockComment = false;
+                } else {
+                    // Command Keyword Highlighting
+                    const parts = trimmedLine.split(/\s+/);
+                    const firstWord = parts[0];
+                    
+                    let isKeyword = false;
+                    // Check exact match or "svy:" prefix
+                    if (keywords.includes(firstWord.toLowerCase()) || firstWord.toLowerCase().startsWith('svy') || firstWord.toLowerCase().startsWith('bysort')) {
+                        isKeyword = true;
+                    }
+                    
+                    // Handle cases with trailing punctuation like "coefplot,"
+                    if (!isKeyword && firstWord.match(/[a-z0-9]+/i)) {
+                         const cleanWord = firstWord.replace(/[^a-z0-9_]/gi, '');
+                         if (keywords.includes(cleanWord.toLowerCase())) {
+                             isKeyword = true;
+                         }
+                    }
+
+                    if (isKeyword) {
+                         // Highlight first word in Blue
+                         const commandRegex = new RegExp(`^(${firstWord.replace(/[^a-z0-9_]/gi, '')})`, 'i');
+                         processedLine = processedLine.replace(commandRegex, `<span class="text-blue-700 font-bold">$1</span>`);
+                         
+                         // Highlight options after comma (Simple heuristic)
+                         if(processedLine.includes(',')) {
+                             const commaIndex = processedLine.indexOf(',');
+                             const beforeComma = processedLine.substring(0, commaIndex);
+                             const afterComma = processedLine.substring(commaIndex);
+                             processedLine = beforeComma + '<span class="text-purple-700">' + afterComma + '</span>';
+                         }
+                    }
+                    
+                    // Highlight macros (Backticks and $ signs)
+                    processedLine = processedLine.replace(/`.*?\'/g, match => `<span class="text-orange-600 font-bold">${match}</span>`);
+                    processedLine = processedLine.replace(/\$\w+/g, match => `<span class="text-red-600 font-bold">${match}</span>`);
+                }
+                
+                output += `<div class="${className} whitespace-pre min-h-[1.25rem] pl-2">${processedLine}</div>`;
+            });
+            output += `</div>`;
+            return output;
+        }
+
+        function renderComparisonTable() {
+            return `
+           <div class="overflow-x-auto">
+             <table class="min-w-full bg-white border border-gray-200 rounded-lg text-sm">
+               <thead>
+                 <tr class="bg-gray-100 text-left">
+                   <th class="p-3 border-b font-bold text-gray-700 w-1/6">Action</th>
+                   <th class="p-3 border-b font-bold text-blue-700 w-1/3">Stata</th>
+                   <th class="p-3 border-b font-bold text-purple-700 w-1/2">SPSS</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr class="border-b">
+                   <td class="p-3 font-medium align-top">Open File</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">use "file.dta", clear</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">GET FILE='file.sav'.</td>
+                 </tr>
+                 <tr class="border-b bg-gray-50">
+                   <td class="p-3 font-medium align-top">Sort</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">sort region age</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">SORT CASES BY region age.</td>
+                 </tr>
+                 <tr class="border-b">
+                   <td class="p-3 font-medium align-top">Frequency</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">tab var</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">FREQUENCIES VARIABLES=var
+  /ORDER=ANALYSIS.</td>
+                 </tr>
+                 <tr class="border-b bg-gray-50">
+                   <td class="p-3 font-medium align-top">Crosstab</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">tab y x, row</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">CROSSTABS
+  /TABLES=y BY x
+  /CELLS=COUNT ROW.</td>
+                 </tr>
+                 <tr class="border-b">
+                   <td class="p-3 font-medium align-top">Filter</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">keep if age > 20</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">SELECT IF (age > 20).
+EXECUTE.</td>
+                 </tr>
+                 <tr class="border-b bg-gray-50">
+                   <td class="p-3 font-medium align-top">Compute</td>
+                   <td class="p-3 font-mono text-blue-600 align-top">gen z = x + y</td>
+                   <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">COMPUTE z = x + y.
+EXECUTE.</td>
+                 </tr>
+                 <tr class="border-b">
+                    <td class="p-3 font-medium align-top">Aggregate</td>
+                    <td class="p-3 font-mono text-blue-600 align-top">collapse (mean) price, by(region)</td>
+                    <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">AGGREGATE
+  /OUTFILE=* MODE=ADDVARIABLES
+  /BREAK=region
+  /price_mean=MEAN(price).</td>
+                 </tr>
+                 <tr class="border-b bg-gray-50">
+                    <td class="p-3 font-medium align-top">Merge</td>
+                    <td class="p-3 font-mono text-blue-600 align-top">merge 1:1 id using "file2"</td>
+                    <td class="p-3 font-mono text-purple-600 align-top whitespace-pre-wrap">MATCH FILES /FILE=*
+  /FILE='file2.sav'
+  /BY id.
+EXECUTE.</td>
+                 </tr>
+               </tbody>
+             </table>
+           </div>
+            `;
+        }
+
+        function renderResourceList(list, t) {
+            let html = `<div class="grid gap-3 md:grid-cols-2">`;
+            html += `<p class="col-span-full text-xs text-gray-400 mb-2"><i data-lucide="info" class="w-3 h-3 inline mr-1"></i>${t.ui.resourceNotice}</p>`;
+            list.forEach(item => {
+                const bgClass = item.highlight ? "bg-amber-50 border-amber-200 hover:bg-amber-100 text-amber-800" : "bg-gray-50 border-gray-200 hover:bg-blue-50 hover:border-blue-200 text-gray-700";
+                html += `
+                <a href="${item.url}" 
+                   onclick="handleLinkCopy(event, '${item.url}', this)"
+                   class="flex items-center gap-3 p-4 border rounded-lg transition-all group cursor-pointer no-underline ${bgClass}">
+                    <div class="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                        <i data-lucide="${item.highlight ? 'star' : 'link'}" class="w-5 h-5 ${item.highlight ? 'text-amber-500' : 'text-blue-500'}"></i>
+                    </div>
+                    <span class="font-semibold text-sm">${item.name}</span>
+                    <i data-lucide="copy" class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-50"></i>
+                </a>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function renderQuizSection(quizzes, t, lang) {
+            const qIndex = state.quiz.index;
+            const qData = quizzes[qIndex];
+            const status = state.quiz.status;
+            let html = `
+                <div class="mt-10 bg-indigo-50 border border-indigo-100 rounded-xl p-6 shadow-sm relative">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                            <i data-lucide="help-circle" class="w-5 h-5"></i>
+                            ${t.ui.practice}
+                        </h3>
+                        <span class="text-xs font-bold text-indigo-400 bg-white px-2 py-1 rounded border border-indigo-100">
+                            ${t.ui.questionCount} ${qIndex + 1} / ${quizzes.length}
+                        </span>
+                    </div>
+                    <div class="min-h-[60px]">
+                        <p class="mb-4 text-indigo-800 font-medium leading-relaxed">
+                            ${qData.question[lang]}
+                        </p>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="quiz-input" value="${state.quiz.answer}" 
+                            placeholder="${qData.placeholder}"
+                            oninput="updateQuizAnswer(this.value)"
+                            onkeydown="if(event.key === 'Enter') checkAnswer()"
+                            class="w-full p-4 rounded-lg border-2 font-mono text-sm outline-none transition-all ${status === 'correct' ? 'border-green-400 bg-green-50 text-green-900' : status === 'incorrect' ? 'border-red-300 bg-red-50' : 'border-indigo-200 focus:border-indigo-400 bg-white'}"
+                        />
+                        <div class="absolute right-3 top-3 text-gray-400"><i data-lucide="terminal" class="w-5 h-5 opacity-50"></i></div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <button onclick="checkAnswer()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>${t.ui.check}
+                        </button>
+                        ${status === 'incorrect' ? `<button onclick="toggleHint()" class="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2"><i data-lucide="lightbulb" class="w-4 h-4"></i>${t.ui.hint}</button>` : ''}
+                        <div class="flex-1 flex justify-end gap-2">
+                            <button onclick="changeQuestion(-1)" ${qIndex === 0 ? 'disabled' : ''} class="p-2 rounded-full hover:bg-indigo-100 disabled:opacity-30 disabled:hover:bg-transparent text-indigo-700"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                            <button onclick="changeQuestion(1)" ${qIndex === quizzes.length - 1 ? 'disabled' : ''} class="p-2 rounded-full hover:bg-indigo-100 disabled:opacity-30 disabled:hover:bg-transparent text-indigo-700"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+                        </div>
+                    </div>
+                    ${status === 'correct' ? `<div class="mt-4 flex items-center gap-2 text-green-700 font-bold fade-in"><i data-lucide="check-circle" class="w-6 h-6"></i>${t.ui.correct}</div><div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100 text-sm text-gray-700 fade-in"><span class="font-bold block mb-1 text-indigo-600">${t.ui.explanation}</span>${qData.explanation[lang].replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded font-mono text-pink-600">$1</code>')}</div>` : ''}
+                    ${status === 'incorrect' ? `<div class="mt-4 flex items-center gap-2 text-red-600 font-bold fade-in"><i data-lucide="x-circle" class="w-6 h-6"></i>${t.ui.incorrect}</div>${state.quiz.showHint ? `<div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100 text-sm text-gray-700 fade-in"><span class="font-bold block mb-1 text-indigo-600">${t.ui.hint}</span><div class="italic text-gray-500">${qData.hint}</div></div>` : ''}` : ''}
+                </div>
+            `;
+            return html;
+        }
+
+        // --- Logic Handlers ---
+
+        function updateQuizAnswer(val) {
+            state.quiz.answer = val;
+            state.quiz.status = 'idle';
+        }
+
+        function checkAnswer() {
+            const qIndex = state.quiz.index;
+            const module = tutorialData[state.activeModule];
+            const qData = module.quizzes[qIndex];
+            const input = document.getElementById('quiz-input').value.toLowerCase().replace(/\s/g, '');
+            if(!input.trim()) return;
+            const keywords = qData.correctKeywords.map(k => k.toLowerCase().replace(/\s/g, ''));
+            const isCorrect = keywords.every(k => input.includes(k));
+            state.quiz.status = isCorrect ? 'correct' : 'incorrect';
+            state.quiz.answer = document.getElementById('quiz-input').value;
+            renderMainContent();
+            lucide.createIcons();
+            document.getElementById('quiz-input').focus();
+        }
+
+        function toggleHint() {
+            state.quiz.showHint = !state.quiz.showHint;
+            state.quiz.answer = document.getElementById('quiz-input').value;
+            renderMainContent();
+            lucide.createIcons();
+        }
+
+        function changeQuestion(delta) {
+            state.quiz.index += delta;
+            state.quiz.answer = '';
+            state.quiz.status = 'idle';
+            state.quiz.showHint = false;
+            renderMainContent();
+            lucide.createIcons();
+        }
+
+        function updateMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            if (state.isMenuOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Special Handler for Link Copying (Left click copy, Right click menu)
+        function handleLinkCopy(e, url, elem) {
+            if (e.button === 0) { // Left click
+                e.preventDefault();
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        const msg = translations[state.lang].copySuccess;
+                        
+                        // Check if it is the FAB
+                        if (elem.id === 'gemini-fab') {
+                            const tooltip = document.getElementById('gemini-tooltip');
+                            const oldText = tooltip.textContent;
+                            tooltip.textContent = msg;
+                            setTimeout(() => tooltip.textContent = oldText, 2000);
+                            return;
+                        }
+
+                        // Standard Resource Link feedback
+                        if(elem.classList.contains('p-4')) {
+                             // Card style
+                             const span = elem.querySelector('span');
+                             const oldText = span.textContent;
+                             span.textContent = msg;
+                             setTimeout(() => span.textContent = oldText, 1500);
+                        } else {
+                             // Button style
+                             const span = elem.querySelector('span');
+                             if(span) {
+                                 const oldText = span.textContent;
+                                 span.textContent = msg;
+                                 setTimeout(() => span.textContent = oldText, 1500);
+                             }
+                        }
+                    });
+                }
+            }
+        }
+
+        document.getElementById('menu-toggle').onclick = () => { state.isMenuOpen = !state.isMenuOpen; updateMobileMenu(); };
+        document.getElementById('overlay').onclick = () => { state.isMenuOpen = false; updateMobileMenu(); };
+        document.getElementById('lang-toggle-mobile').onclick = () => {
+            const nextLang = state.lang === 'en' ? 'zh' : state.lang === 'zh' ? 'fr' : 'en';
+            setLang(nextLang);
+        };
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            // Attach Handlers to Top Buttons
+            const attachLinkHandler = (id, url) => {
+                const btn = document.getElementById(id);
+                if(btn) {
+                    btn.onclick = (e) => handleLinkCopy(e, url, btn);
+                }
+            };
+
+            attachLinkHandler('manual-btn', 'https://www.stata.com/manuals18/u.pdf');
+            attachLinkHandler('forum-btn', 'https://www.statalist.org/forums/');
+            attachLinkHandler('site-btn', 'https://www.stata.com/');
+            
+            // Attach Handler to Gemini FAB
+            const fab = document.getElementById('gemini-fab');
+            if(fab) {
+                fab.onclick = (e) => handleLinkCopy(e, "https://gemini.google.com/", fab);
+            }
+
+            // Initial render (Using state.lang which defaults to 'en')
+            setLang(state.lang);
+            renderApp();
+        });
+
+    </script>
+</body>
+</html>
