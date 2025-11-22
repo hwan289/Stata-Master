@@ -17,8 +17,9 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Floating Action Button Animation */
+        /* Floating Action Button Hover Effect */
         .fab-hover:hover { transform: scale(1.1); }
+        .fab-active:active { transform: scale(0.95); }
         
         /* Tooltip Styling */
         .tooltip { 
@@ -26,6 +27,8 @@
             opacity: 0; 
             transition: opacity 0.2s, transform 0.2s; 
             transform: translateY(10px);
+            white-space: normal; /* Allow text wrapping for longer descriptions */
+            line-height: 1.4;
         }
         .has-tooltip:hover .tooltip { 
             visibility: visible; 
@@ -121,12 +124,22 @@
 
     <div id="overlay" class="fixed inset-0 bg-black bg-opacity-20 z-30 hidden backdrop-blur-sm md:hidden"></div>
 
+    <div class="fixed bottom-28 right-8 z-50 has-tooltip">
+         <div id="spss-tooltip" class="tooltip absolute bottom-full right-0 mb-2 w-60 p-3 bg-indigo-900 text-white text-xs rounded shadow-lg text-center z-50">
+            </div>
+        <a href="https://hwan289.github.io/SPSS-Stata-Converter/" target="_blank"
+           class="fab-hover fab-active flex items-center justify-center w-14 h-14 bg-indigo-100 text-indigo-600 border-2 border-indigo-200 rounded-full shadow-lg cursor-pointer transition-all duration-200 no-underline">
+            <i data-lucide="arrow-right-left" class="w-7 h-7"></i>
+        </a>
+    </div>
+
     <div class="fixed bottom-8 right-8 z-50 has-tooltip" id="gemini-container">
         <span id="gemini-tooltip" class="tooltip absolute bottom-full right-0 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg text-center z-50">
             Ask Google Gemini AI for more Stata questions
         </span>
         <a href="https://gemini.google.com/" target="_blank" id="gemini-fab"
-           class="fab-hover flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-xl cursor-pointer transition-all duration-200">
+           onclick="handleLinkCopy(event, 'https://gemini.google.com/', this)"
+           class="fab-hover fab-active flex items-center justify-center w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-xl cursor-pointer transition-all duration-200 no-underline">
             <i data-lucide="sparkles" class="w-7 h-7"></i>
         </a>
     </div>
@@ -136,6 +149,7 @@
             
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-gray-100 pb-4">
                 <div class="flex flex-wrap gap-3">
+                    
                     <div class="btn-tooltip-group">
                         <span id="manual-tooltip" class="btn-tooltip">Latest version is Stata 19</span>
                         <a href="https://www.stata.com/manuals18/u.pdf" id="manual-btn" target="_blank"
@@ -193,6 +207,8 @@
                 btnSite: "Stata Official",
                 copySuccess: "Link Copied!",
                 geminiTooltip: "Ask Google Gemini AI for more Stata questions",
+                spssTitle: "SPSS Stata Converter",
+                spssDesc: "Ask AI questions and convert code between SPSS and Stata.",
                 manualTooltip: "Latest version is Stata 19",
                 modules: {
                     basics: "1. Basics & Data Management",
@@ -229,6 +245,8 @@
                 btnSite: "Stata 官网",
                 copySuccess: "链接已复制！",
                 geminiTooltip: "更多关于 Stata 的问题请询问 Google Gemini AI",
+                spssTitle: "SPSS Stata 转换器",
+                spssDesc: "向 AI 提问代码问题，并实现 SPSS 与 Stata 语法的互转。",
                 manualTooltip: "最新版本是 Stata 19",
                 modules: {
                     basics: "1. 基础语法与数据管理",
@@ -265,6 +283,8 @@
                 btnSite: "Site Officiel Stata",
                 copySuccess: "Lien copié !",
                 geminiTooltip: "Posez plus de questions sur Stata à Google Gemini AI",
+                spssTitle: "Convertisseur SPSS Stata",
+                spssDesc: "Posez des questions à l'IA et convertissez le code entre SPSS et Stata.",
                 manualTooltip: "La dernière version est Stata 19",
                 modules: {
                     basics: "1. Bases et Gestion de Données",
@@ -1647,6 +1667,12 @@ merge m:1 region using "\`region_stats'"`
             document.getElementById('gemini-tooltip').textContent = t.geminiTooltip;
             document.getElementById('manual-tooltip').textContent = t.manualTooltip;
             
+            // SPSS Tooltip Update
+            const spssTooltip = document.getElementById('spss-tooltip');
+            if(spssTooltip) {
+                spssTooltip.innerHTML = `<b>${t.spssTitle}</b><br/>${t.spssDesc}`;
+            }
+
             // Top Buttons
             document.getElementById('btn-manual-text').textContent = t.btnManual;
             document.getElementById('btn-forum-text').textContent = t.btnForum;
@@ -2004,7 +2030,8 @@ EXECUTE.</td>
 
         // Special Handler for Link Copying (Left click copy, Right click menu)
         function handleLinkCopy(e, url, elem) {
-            if (e.button === 0) { // Left click
+            // Only allow Left Click (button 0) to trigger copy
+            if (e.button === 0) { 
                 e.preventDefault();
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(url).then(() => {
@@ -2015,7 +2042,11 @@ EXECUTE.</td>
                             const tooltip = document.getElementById('gemini-tooltip');
                             const oldText = tooltip.textContent;
                             tooltip.textContent = msg;
-                            setTimeout(() => tooltip.textContent = oldText, 2000);
+                            setTimeout(() => { 
+                                // Restore tooltip text based on current lang
+                                const currentT = translations[state.lang].geminiTooltip;
+                                tooltip.textContent = currentT; 
+                            }, 2000);
                             return;
                         }
 
@@ -2061,13 +2092,13 @@ EXECUTE.</td>
             attachLinkHandler('forum-btn', 'https://www.statalist.org/forums/');
             attachLinkHandler('site-btn', 'https://www.stata.com/');
             
-            // Attach Handler to Gemini FAB
-            const fab = document.getElementById('gemini-fab');
-            if(fab) {
-                fab.onclick = (e) => handleLinkCopy(e, "https://gemini.google.com/", fab);
+            // Attach Handler to Gemini FAB (using generic link handler logic)
+            const geminiFab = document.getElementById('gemini-fab');
+            if (geminiFab) {
+                geminiFab.onclick = (e) => handleLinkCopy(e, "https://gemini.google.com/", geminiFab);
             }
 
-            // Initial render (Using state.lang which defaults to 'en')
+            // Initial render
             setLang(state.lang);
             renderApp();
         });
