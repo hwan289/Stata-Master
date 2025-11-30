@@ -822,7 +822,7 @@ reg price ib3.rep78`
 reg price c.mpg##i.foreign
 
 * 2. Significance Test of Interaction
-test c.mpg#1.foreign
+test c.mpg#i.foreign
 
 * 3. Calculate Slopes (Margins)
 margins foreign, dydx(mpg)
@@ -838,7 +838,7 @@ regress y c.age_c##i.gender`,
 reg price c.mpg##i.foreign
 
 * 2. 交互项显著性检验 (Wald Test)
-test c.mpg#1.foreign
+test c.mpg#i.foreign
 
 * 3. 计算斜率 (边际效应)
 margins foreign, dydx(mpg)
@@ -854,7 +854,7 @@ regress y c.age_c##i.gender`,
 reg price c.mpg##i.foreign
 
 * 2. Test de signification
-test c.mpg#1.foreign
+test c.mpg#i.foreign
 
 * 3. Calculer les pentes (Marges)
 margins foreign, dydx(mpg)
