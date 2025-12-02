@@ -1635,7 +1635,7 @@ merge m:1 region using "\`region_stats'"`
             document.getElementById('lang-label-mobile').textContent = l.toUpperCase();
             
             // Update Footer Date
-            const date = new Date();
+            const date = new Date('2025-12-02');
             const dateString = date.toLocaleDateString(l === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             let prefix = "Last Edited";
             if(l === 'zh') prefix = "最后更新";
